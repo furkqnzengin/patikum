@@ -1,0 +1,14 @@
+</main>
+<div class="modal fade" id="mPass" tabindex="-1"><div class="modal-dialog"><form method="post" action="<?= url('panel/') ?>" class="modal-content" style="border-radius:20px">
+  <?= csrf_field() ?><input type="hidden" name="islem" value="sifre">
+  <div class="modal-header"><h5 class="modal-title fw-bold">Şifre Değiştir</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <div class="mb-2"><label class="form-label">Mevcut şifre</label><input type="password" name="old" class="form-control" required></div>
+    <div class="mb-2"><label class="form-label">Yeni şifre (en az 6 karakter)</label><input type="password" name="new" class="form-control" minlength="6" required></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-teal">Kaydet</button></div>
+</form></div></div>
+<footer class="text-center small text-muted pb-4">🐾 <?= e(setting('clinic_name')) ?> · <?= e(setting('clinic_phone')) ?></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
