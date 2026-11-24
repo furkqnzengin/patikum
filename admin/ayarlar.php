@@ -26,6 +26,34 @@ if (is_post()) {
         flash('success', 'Cron anahtarı yenilendi. cPanel cron URL\'nizi güncelleyin.');
         redirect(url('admin/ayarlar.php?sekme=sistem'));
     }
+    if ($tab === 'genel') {
+        $old = (string)setting('clinic_logo');
+        $f = $_FILES['logo_file'] ?? null;
+        if (post('logo_sil') && $old !== '') {
+            @unlink(ROOT . '/assets/' . $old);
+            setting_set('clinic_logo', '');
+        }
+        if ($f && $f['error'] === UPLOAD_ERR_OK) {
+            $info = @getimagesize($f['tmp_name']);
+            $ext = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/webp' => 'webp', 'image/gif' => 'gif'][$info['mime'] ?? ''] ?? null;
+            if (!$ext || $f['size'] > 3 * 1024 * 1024) {
+                flash('danger', 'Logo yüklenemedi: PNG, JPG veya WEBP biçiminde, en fazla 3 MB bir resim seçin.');
+            } else {
+                $dir = ROOT . '/assets/img/uploads';
+                if (!is_dir($dir)) @mkdir($dir, 0755, true);
+                if (!is_file($dir . '/.htaccess')) @file_put_contents($dir . '/.htaccess', "<FilesMatch \"\\.(php|phtml|phar|pl|py|cgi|sh)$\">\n  Require all denied\n</FilesMatch>\n");
+                $name = 'logo-' . date('YmdHis') . '.' . $ext;
+                if (move_uploaded_file($f['tmp_name'], $dir . '/' . $name)) {
+                    if ($old !== '' && $old !== 'img/uploads/' . $name) @unlink(ROOT . '/assets/' . $old);
+                    setting_set('clinic_logo', 'img/uploads/' . $name);
+                } else {
+                    flash('danger', 'Logo kaydedilemedi. assets/img klasörünün yazma izni (755) olduğundan emin olun.');
+                }
+            }
+        } elseif ($f && $f['error'] !== UPLOAD_ERR_NO_FILE) {
+            flash('danger', 'Logo yüklenemedi (dosya çok büyük olabilir).');
+        }
+    }
     foreach ($fields[$tab] ?? [] as $f) {
         if (!array_key_exists($f, $_POST)) {
             if (in_array($f, ['wa_send_instant', 'web_appointments'], true)) setting_set($f, '0');
@@ -70,7 +98,7 @@ include APP . '/views/admin_header.php'; ?>
     </dl>
   </div></div>
 <?php else: ?>
-<form method="post" class="card" style="max-width:900px"><div class="card-body">
+<form method="post" class="card" style="max-width:900px" enctype="multipart/form-data"><div class="card-body">
   <?= csrf_field() ?>
   <?php if ($tab === 'genel'): ?>
     <div class="row"><div class="col-md-6"><?= fld('clinic_name', 'Klinik Adı') ?></div><div class="col-md-6"><?= fld('clinic_slogan', 'Slogan') ?></div>
@@ -79,6 +107,14 @@ include APP . '/views/admin_header.php'; ?>
       <div class="col-md-6"><?= fld('clinic_instagram', 'Instagram kullanıcı adı') ?></div><div class="col-md-6"><?= fld('clinic_facebook', 'Facebook sayfa adresi') ?></div>
       <div class="col-12"><?= fld('clinic_map', 'Google Harita Embed URL', 'text', 'Google Maps &gt; Paylaş &gt; Harita yerleştir &gt; iframe içindeki src adresi') ?></div>
       <div class="col-12"><h6 class="fw-bold mt-2"><i class="bi bi-window me-1"></i>Web Sitesi Görünümü</h6></div>
+      <div class="col-12"><div class="mb-3"><label class="form-label fw-bold">Klinik Logosu</label>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <div class="logo-preview"><?php if ($lg = clinic_logo()): ?><img src="<?= e($lg) ?>" alt="Logo"><?php else: ?><img src="<?= asset('img/favicon.svg') ?>" alt="" style="opacity:.5"><?php endif; ?></div>
+          <div class="flex-grow-1"><input type="file" name="logo_file" accept="image/png,image/jpeg,image/webp" class="form-control">
+            <div class="form-text">PNG (şeffaf arka planlı önerilir), JPG veya WEBP · en fazla 3 MB. Web sitesinin üst menüsünde, alt bilgisinde, yönetim panelinde, müşteri panelinde ve giriş ekranlarında görünür.</div>
+            <?php if (clinic_logo()): ?><div class="form-check mt-1"><input class="form-check-input" type="checkbox" name="logo_sil" value="1" id="lsil"><label class="form-check-label small text-danger" for="lsil">Logoyu kaldır</label></div><?php endif; ?>
+          </div>
+        </div></div></div>
       <div class="col-md-6"><?= fld('site_hero_image', 'Ana sayfa fotoğrafı (adres)', 'url', 'Kliniğinizin veya bir hastanızın fotoğrafının bağlantısı (https://…jpg). Boş bırakılırsa çizim gösterilir.') ?></div>
       <div class="col-md-6"><?= fld('site_about', 'Hakkımızda yazısı', 'textarea', 'Ana sayfadaki "Hakkımızda" bölümünde görünür.') ?></div>
       <div class="col-md-6"><?= fld('site_url', 'Site Adresi', 'url', 'WhatsApp mesajlarındaki panel linki için. Örn: https://patikum.com') ?></div><div class="col-md-6"><?= fld('service_vat', 'Muayene/hizmet KDV oranı (%)', 'number') ?></div>

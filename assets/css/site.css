@@ -235,3 +235,11 @@ footer.site-foot .brand { color: #fff; }
   .appt-box { padding: 1.5rem; }
   .phone { transform: none; }
 }
+
+/* Yüklenen klinik logosu */
+.brand .brand-logo, img.brand-logo { max-height: 50px; max-width: 220px; width: auto !important; height: auto; object-fit: contain; display: block; }
+.site-nav.scrolled .brand-logo { max-height: 42px; }
+.logo-pill { display: inline-flex; background: #fff; border-radius: 16px; padding: .45rem .8rem; box-shadow: 0 6px 18px rgba(0, 0, 0, .12); }
+.logo-pill .brand-logo { max-height: 42px; max-width: 190px; }
+.av-logo { position: absolute; left: 2.2rem; top: 2.2rem; background: #fff; border-radius: 18px; padding: .6rem .9rem; box-shadow: 0 10px 24px rgba(0, 0, 0, .15); }
+.av-logo img { position: static !important; width: auto !important; max-height: 54px; max-width: 170px; filter: none !important; opacity: 1 !important; transform: none !important; }

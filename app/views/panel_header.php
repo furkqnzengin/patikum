@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
 <title><?= e(($pageTitle ?? 'Müşteri Paneli') . ' · ' . setting('clinic_name', 'Patikum')) ?></title>
-<link rel="icon" href="<?= asset('img/favicon.svg') ?>">
+<link rel="icon" href="<?= e(favicon_url()) ?>">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -12,7 +12,7 @@
 <body class="panel-body">
 <div class="panel-top">
   <div class="container d-flex align-items-center justify-content-between flex-wrap gap-2">
-    <a class="brand" href="<?= url('panel/') ?>"><img src="<?= asset('img/favicon.svg') ?>" alt="" style="filter:brightness(0) invert(1)"> patikum</a>
+    <a class="brand" href="<?= url('panel/') ?>"><?php if ($lg = clinic_logo()): ?><span class="logo-pill"><img class="brand-logo" src="<?= e($lg) ?>" alt=""></span><?php else: ?><img src="<?= asset('img/favicon.svg') ?>" alt="" style="filter:brightness(0) invert(1)"> patikum<?php endif; ?></a>
     <div class="d-flex gap-2 align-items-center">
       <?php if ($wa = setting('clinic_whatsapp')): ?><a class="btn btn-sm btn-light" href="<?= e(wa_link($wa)) ?>" target="_blank" rel="noopener"><i class="bi bi-whatsapp text-success"></i> <span class="d-none d-sm-inline">Kliniğe yaz</span></a><?php endif; ?>
       <div class="dropdown"><button class="btn btn-sm btn-outline-light dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-person-circle"></i> <?= e(explode(' ', $me['name'])[0]) ?></button>

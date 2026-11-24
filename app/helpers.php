@@ -27,6 +27,14 @@ function asset(string $p): string
     return url('assets/' . ltrim($p, '/')) . '?v=' . $v;
 }
 
+/** Ayarlardan yüklenen klinik logosu (yoksa null) */
+function clinic_logo(): ?string
+{
+    $l = (string)setting('clinic_logo');
+    return ($l !== '' && preg_match('#^img/uploads/[A-Za-z0-9._-]+$#', $l) && is_file(ROOT . '/assets/' . $l)) ? asset($l) : null;
+}
+function favicon_url(): string { return clinic_logo() ?? asset('img/favicon.svg'); }
+
 function site_url(): string
 {
     $s = setting('site_url');

@@ -12,7 +12,7 @@ $wa = setting('clinic_whatsapp');
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
 <title>Müşteri Paneli · <?= e(setting('clinic_name', 'Patikum')) ?></title>
-<link rel="icon" href="<?= asset('img/favicon.svg') ?>">
+<link rel="icon" href="<?= e(favicon_url()) ?>">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -21,7 +21,7 @@ $wa = setting('clinic_whatsapp');
 <body>
 <div class="login-wrap">
   <div class="login-card">
-    <a class="brand justify-content-center mb-3" href="<?= url('') ?>"><img src="<?= asset('img/favicon.svg') ?>" alt=""> patikum</a>
+    <a class="brand justify-content-center mb-3" href="<?= url('') ?>"><?php if ($lg = clinic_logo()): ?><img class="brand-logo" src="<?= e($lg) ?>" alt="" style="max-height:70px"><?php else: ?><img src="<?= asset('img/favicon.svg') ?>" alt=""> patikum<?php endif; ?></a>
     <h1 class="h3 text-center">Müşteri Paneli</h1>
     <p class="text-center text-muted">Dostunuzun aşı takvimi, işlemleri ve hesap durumunuz tek ekranda.</p>
     <?php if ($err): ?><div class="alert alert-danger"><?= e($err) ?></div><?php endif; ?>

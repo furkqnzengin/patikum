@@ -68,7 +68,7 @@ $menu = [
 <meta name="theme-color" content="#123d34">
 <title><?= e(($pageTitle ?? 'Yönetim') . ' · ' . setting('clinic_name', 'Patikum')) ?></title>
 <script>try{if(localStorage.getItem('pt_money_hidden')==='1')document.documentElement.classList.add('money-hidden');if(localStorage.getItem('pt_side_mini')==='1')document.documentElement.classList.add('side-mini');}catch(e){}</script>
-<link rel="icon" href="<?= asset('img/favicon.svg') ?>">
+<link rel="icon" href="<?= e(favicon_url()) ?>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -82,8 +82,9 @@ $menu = [
 <aside class="pt-side" id="ptSide">
   <div class="pt-side-head">
     <a class="pt-logo" href="<?= url('admin/') ?>">
-      <span class="paw"><img src="<?= asset('img/favicon.svg') ?>" width="24" height="24" alt=""></span>
-      <span class="txt">patikum<small>klinik</small></span>
+      <?php if ($clogo = clinic_logo()): ?><span class="logo-box"><img src="<?= e($clogo) ?>" alt="<?= e(setting('clinic_name', 'Patikum')) ?>"></span>
+      <?php else: ?><span class="paw"><img src="<?= asset('img/favicon.svg') ?>" width="24" height="24" alt=""></span>
+      <span class="txt">patikum<small>klinik</small></span><?php endif; ?>
     </a>
     <button class="pt-side-close d-lg-none" type="button" data-pt-side="close" aria-label="Menüyü kapat"><i class="bi bi-x-lg"></i></button>
   </div>

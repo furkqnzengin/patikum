@@ -6,3 +6,5 @@ app/data/*
 .DS_Store
 Thumbs.db
 /vendor/
+assets/img/uploads/*
+!assets/img/uploads/.htaccess

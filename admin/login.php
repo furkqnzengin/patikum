@@ -15,7 +15,7 @@ if (is_post()) {
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
 <title>Yönetim Girişi · <?= e(setting('clinic_name', 'Patikum')) ?></title>
-<link rel="icon" href="<?= asset('img/favicon.svg') ?>">
+<link rel="icon" href="<?= e(favicon_url()) ?>">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -33,7 +33,7 @@ body{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr;background:#f
 </head>
 <body>
 <div class="side">
-  <div class="pt-logo"><span class="paw"><img src="<?= asset('img/favicon.svg') ?>" width="26" alt=""></span> patikum</div>
+  <div class="pt-logo"><?php if ($lg = clinic_logo()): ?><span class="logo-box"><img src="<?= e($lg) ?>" alt=""></span><?php else: ?><span class="paw"><img src="<?= asset('img/favicon.svg') ?>" width="26" alt=""></span> patikum<?php endif; ?></div>
   <div>
     <h2>Kliniğiniz tek ekranda,<br>dostlarınız güvende.</h2>
     <ul class="list-unstyled mt-4">

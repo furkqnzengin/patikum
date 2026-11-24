@@ -74,7 +74,7 @@ $faqs = [
 <meta property="og:description" content="<?= e(setting('clinic_slogan', 'Patili dostlarınız için sevgiyle, bilimle.')) ?>">
 <meta property="og:type" content="website">
 <?php if ($heroImg): ?><meta property="og:image" content="<?= e($heroImg) ?>"><?php endif; ?>
-<link rel="icon" href="<?= asset('img/favicon.svg') ?>">
+<link rel="icon" href="<?= e(favicon_url()) ?>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -95,7 +95,7 @@ $faqs = [
 </div>
 <nav class="site-nav navbar navbar-expand-lg" id="top">
   <div class="container">
-    <a class="brand" href="#top"><span class="brand-mark"><img src="<?= asset('img/favicon.svg') ?>" alt=""></span><span>patikum<small>veteriner kliniği</small></span></a>
+    <a class="brand" href="#top"><?php if ($logo = clinic_logo()): ?><img class="brand-logo" src="<?= e($logo) ?>" alt="<?= e($name) ?>"><?php else: ?><span class="brand-mark"><img src="<?= asset('img/favicon.svg') ?>" alt=""></span><span>patikum<small>veteriner kliniği</small></span><?php endif; ?></a>
     <button class="navbar-toggler border-0 shadow-none" data-bs-toggle="collapse" data-bs-target="#nv" aria-label="Menü"><i class="bi bi-list fs-2"></i></button>
     <div class="collapse navbar-collapse" id="nv">
       <ul class="navbar-nav mx-auto gap-lg-1">
@@ -178,7 +178,7 @@ $faqs = [
   <div class="container"><div class="row g-4 g-lg-5 align-items-center">
     <div class="col-lg-5">
       <div class="about-visual">
-        <div class="av-main"><img src="<?= asset('img/favicon.svg') ?>" alt=""><b>Her pati<br>bizim için özel.</b></div>
+        <div class="av-main"><img src="<?= asset('img/favicon.svg') ?>" alt=""><?php if ($logo): ?><span class="av-logo"><img src="<?= e($logo) ?>" alt=""></span><?php endif; ?><b>Her pati<br>bizim için özel.</b></div>
         <div class="av-badge"><i class="bi bi-heart-pulse"></i><span>Koruyucu<br>hekimlik</span></div>
       </div>
     </div>
@@ -353,7 +353,7 @@ $faqs = [
       <div class="d-flex gap-2 flex-wrap"><?php if ($webAppt): ?><a href="#randevu" class="btn btn-brand btn-lg">Randevu Al</a><?php endif; ?><?php if ($wa): ?><a href="<?= e(wa_link($wa)) ?>" class="btn btn-outline-light btn-lg" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> WhatsApp</a><?php endif; ?></div>
     </div>
     <div class="row g-4">
-      <div class="col-md-5"><a class="brand light mb-3" href="#top"><span class="brand-mark"><img src="<?= asset('img/favicon.svg') ?>" alt=""></span><span>patikum<small>veteriner kliniği</small></span></a><p class="small"><?= e(setting('clinic_slogan')) ?></p></div>
+      <div class="col-md-5"><a class="brand light mb-3" href="#top"><?php if ($logo): ?><span class="logo-pill"><img class="brand-logo" src="<?= e($logo) ?>" alt="<?= e($name) ?>"></span><?php else: ?><span class="brand-mark"><img src="<?= asset('img/favicon.svg') ?>" alt=""></span><span>patikum<small>veteriner kliniği</small></span><?php endif; ?></a><p class="small"><?= e(setting('clinic_slogan')) ?></p></div>
       <div class="col-6 col-md-3"><b>Hızlı Erişim</b><ul class="list-unstyled small mt-2 d-grid gap-1"><li><a href="#hizmetler">Hizmetler</a></li><li><a href="#asi">Aşı Programı</a></li><li><a href="#randevu">Randevu</a></li><li><a href="<?= url('panel/') ?>">Müşteri Paneli</a></li></ul></div>
       <div class="col-6 col-md-4"><b>Çalışma Saatleri</b><p class="small mt-2"><?= nl2br(e(setting('clinic_hours'))) ?></p></div>
     </div>
