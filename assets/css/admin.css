@@ -182,15 +182,15 @@ footer.pt-foot { color: var(--pt-muted); font-size: .78rem; padding: 1.2rem 1.6r
 .nav-pills .nav-link .badge { margin-left: 3px; }
 .badge-soft { background: var(--pt-primary-soft); color: var(--pt-primary-dark); font-weight: 600; }
 .wa-bubble { background: #dcf8c6; border-radius: 14px 14px 14px 3px; padding: .6rem .85rem; white-space: pre-wrap; font-size: .85rem; max-width: 520px; }
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-.cal-grid .d { background: #fff; min-height: 112px; border-radius: 12px; padding: 7px; font-size: .76rem; border: 1px solid var(--pt-border); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.cal-grid .d { min-width: 0; background: #fff; min-height: 112px; border-radius: 12px; padding: 7px; font-size: .76rem; border: 1px solid var(--pt-border); }
 .cal-grid .d.out { opacity: .45; }
 .cal-grid .d.today { border: 2px solid var(--pt-primary); box-shadow: 0 6px 16px rgba(29, 122, 100, .15); }
 .cal-grid .d .n { font-weight: 800; }
 .cal-grid .ev { display: block; background: var(--pt-primary-soft); color: var(--pt-primary-dark); border-radius: 6px; padding: 1px 6px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
 .cal-grid .ev.talep { background: #fdecd8; color: #9a4a12; }
 .cal-grid .ev.iptal { text-decoration: line-through; opacity: .6; }
-.cal-head { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; font-weight: 700; color: var(--pt-muted); font-size: .72rem; text-transform: uppercase; margin-bottom: 5px; letter-spacing: .5px; }
+.cal-head { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; text-align: center; font-weight: 700; color: var(--pt-muted); font-size: .72rem; text-transform: uppercase; margin-bottom: 5px; letter-spacing: .5px; }
 .sale-items td { vertical-align: middle; }
 .ts-wrapper.form-select, .ts-wrapper.form-control { padding: 0; }
 .ts-control { border-radius: 11px; min-height: 38px; border-color: var(--pt-border); }
@@ -268,3 +268,20 @@ html.money-hidden .dash-hero .money-toggle-lg { background: var(--pt-accent); co
 
 @media print { .pt-side, .pt-topbar, .no-print, footer.pt-foot, .pt-side-backdrop { display: none !important; } body { background: #fff; } .card { box-shadow: none; border: 0; } .pt-content { padding: 0; } }
 @media (max-width: 767px) { .quick-grid { grid-template-columns: repeat(3, 1fr); } .cal-grid .d { min-height: 70px; } .dash-hero { padding: 1.3rem; } .dash-hero .hs { min-width: 140px; flex: 1; } .stat-card .value { font-size: 1.6rem; } }
+
+/* Aşı kalan süre rozetleri ve aşı takvimi */
+.due-badge { display: inline-flex; align-items: center; gap: .3rem; font-size: .74rem; font-weight: 700; padding: .22rem .6rem; border-radius: 20px; white-space: nowrap; }
+.due-badge.plan { background: #e6f1fb; color: #2b77c0; }
+.due-badge.soon { background: #fdf1e4; color: #c4651f; }
+.due-badge.today { background: #fde8ef; color: #c03d73; }
+.due-badge.late { background: #fde4e4; color: #b42318; }
+.due-badge.done { background: #e7f6ee; color: #1f7a4a; }
+.due-badge.off { background: #eef1f0; color: #6b7a75; }
+.vcal .ev { font-size: .72rem; }
+.vcal .ev.v-done { background: #e7f6ee; color: #1f7a4a; }
+.vcal .ev.v-plan { background: #e6f1fb; color: #2b77c0; }
+.vcal .ev.v-late { background: #fde4e4; color: #b42318; }
+.vcal .more { display: block; font-size: .7rem; font-weight: 700; margin-top: 3px; color: var(--pt-muted); }
+.vlegend { display: inline-flex; align-items: center; gap: .35rem; font-weight: 600; }
+.vlegend::before { content: ""; width: 10px; height: 10px; border-radius: 3px; }
+.vlegend.done::before { background: #5cc98b; } .vlegend.plan::before { background: #5db4ee; } .vlegend.late::before { background: #e5484d; }

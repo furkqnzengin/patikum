@@ -75,57 +75,130 @@ if (get('islem') === 'duzenle') {
 
 $tab = get('sekme', 'yaklasan');
 $today = today();
+$cnt = [
+    'bugun' => (int)val("SELECT COUNT(*) FROM vaccinations v JOIN patients p ON p.id = v.patient_id WHERE p.status='aktif' AND v.status='planlandi' AND v.due_date = ?", [$today]),
+    'geciken' => (int)val("SELECT COUNT(*) FROM vaccinations v JOIN patients p ON p.id = v.patient_id WHERE p.status='aktif' AND v.status='planlandi' AND v.due_date < ?", [$today]),
+    'yaklasan' => (int)val("SELECT COUNT(*) FROM vaccinations v JOIN patients p ON p.id = v.patient_id WHERE p.status='aktif' AND v.status='planlandi' AND v.due_date > ?", [$today]),
+];
+$tpl = wa_template('asi_hatirlatma');
+$sp = (int)get('tur');
+
+$tabs = function () use ($tab, $cnt) { ?>
+  <ul class="nav nav-pills">
+    <li class="nav-item"><a class="nav-link <?= $tab === 'takvim' ? 'active' : '' ?>" href="?sekme=takvim"><i class="bi bi-calendar3"></i> Takvim</a></li>
+    <li class="nav-item"><a class="nav-link <?= $tab === 'bugun' ? 'active' : '' ?>" href="?sekme=bugun">Bugün <span class="badge text-bg-light"><?= $cnt['bugun'] ?></span></a></li>
+    <li class="nav-item"><a class="nav-link <?= $tab === 'yaklasan' ? 'active' : '' ?>" href="?sekme=yaklasan">Yaklaşan <span class="badge text-bg-light"><?= $cnt['yaklasan'] ?></span></a></li>
+    <li class="nav-item"><a class="nav-link <?= $tab === 'geciken' ? 'active' : '' ?>" href="?sekme=geciken">Geciken <span class="badge text-bg-danger"><?= $cnt['geciken'] ?></span></a></li>
+    <li class="nav-item"><a class="nav-link <?= $tab === 'yapilan' ? 'active' : '' ?>" href="?sekme=yapilan">Yapılanlar</a></li>
+  </ul>
+<?php };
+$head = function () { ?>
+<div class="page-head"><div><h1>Aşı Takvimi</h1><div class="sub">Yapılan aşılar uygulama tarihinde, yapılacaklar planlanan tarihinde görünür</div></div>
+  <div class="d-flex gap-2 flex-wrap"><?php if (is_admin()): ?><a href="<?= url('admin/aktar.php?tur=asi') ?>" class="btn btn-outline-primary text-nowrap"><i class="bi bi-file-earmark-excel"></i> Excel'den Yükle</a><?php endif; ?><a href="<?= url('admin/asi-sihirbazi.php') ?>" class="btn btn-primary"><i class="bi bi-magic"></i> Otomatik Aşı Sihirbazı</a></div></div>
+<?php };
+
+if ($tab === 'takvim') {
+    $ay = preg_match('/^\d{4}-\d{2}$/', (string)get('ay')) ? get('ay') : date('Y-m');
+    $first = strtotime($ay . '-01');
+    $start = strtotime('-' . ((int)date('N', $first) - 1) . ' days', $first);
+    $end = strtotime('+41 days', $start);
+    $prm = [date('Y-m-d', $start), date('Y-m-d', $end), date('Y-m-d', $start), date('Y-m-d', $end)];
+    $sql = "SELECT v.id, v.status, v.due_date, v.done_date, v.dose_label, t.name AS asi, p.name AS hasta, p.id AS pid, s.icon, c.name AS sahip
+            FROM vaccinations v JOIN vaccine_types t ON t.id = v.vaccine_type_id JOIN patients p ON p.id = v.patient_id JOIN customers c ON c.id = p.customer_id
+            LEFT JOIN species s ON s.id = p.species_id
+            WHERE p.status = 'aktif' AND ((v.status = 'planlandi' AND v.due_date BETWEEN ? AND ?) OR (v.status = 'yapildi' AND COALESCE(v.done_date, v.due_date) BETWEEN ? AND ?))";
+    if ($sp) { $sql .= ' AND p.species_id = ?'; $prm[] = $sp; }
+    $ev = [];
+    foreach (rows($sql . ' ORDER BY p.name', $prm) as $r) {
+        $d = $r['status'] === 'yapildi' ? ($r['done_date'] ?: $r['due_date']) : $r['due_date'];
+        $ev[$d][] = $r;
+    }
+    $mStats = ['yapildi' => 0, 'plan' => 0, 'late' => 0];
+    foreach ($ev as $d => $list) if (substr($d, 0, 7) === $ay) foreach ($list as $r) $mStats[$r['status'] === 'yapildi' ? 'yapildi' : ($d < $today ? 'late' : 'plan')]++;
+    include APP . '/views/admin_header.php';
+    $head(); ?>
+    <div class="d-flex flex-wrap justify-content-between gap-2 mb-3 align-items-center">
+      <?php $tabs(); ?>
+      <form class="d-flex gap-2"><input type="hidden" name="sekme" value="takvim"><input type="hidden" name="ay" value="<?= e($ay) ?>">
+        <select name="tur" class="form-select form-select-sm w-auto" onchange="this.form.submit()"><?= options(species_list(), $sp ?: '', 'id', 'name', 'Tüm türler') ?></select></form>
+    </div>
+    <div class="card"><div class="card-body">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div class="d-flex align-items-center gap-2">
+          <a class="btn btn-light" href="?sekme=takvim&tur=<?= $sp ?>&ay=<?= date('Y-m', strtotime('-1 month', $first)) ?>"><i class="bi bi-chevron-left"></i></a>
+          <h5 class="mb-0 fw-bold" style="min-width:150px;text-align:center"><?= tr_month((int)date('n', $first)) ?> <?= date('Y', $first) ?></h5>
+          <a class="btn btn-light" href="?sekme=takvim&tur=<?= $sp ?>&ay=<?= date('Y-m', strtotime('+1 month', $first)) ?>"><i class="bi bi-chevron-right"></i></a>
+          <a class="btn btn-light" href="?sekme=takvim&tur=<?= $sp ?>">Bugün</a>
+        </div>
+        <div class="d-flex gap-2 small flex-wrap">
+          <span class="vlegend done"><?= $mStats['yapildi'] ?> yapıldı</span>
+          <span class="vlegend plan"><?= $mStats['plan'] ?> planlandı</span>
+          <span class="vlegend late"><?= $mStats['late'] ?> gecikti</span>
+        </div>
+      </div>
+      <div class="cal-head"><?php foreach (['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'] as $g): ?><div><?= $g ?></div><?php endforeach; ?></div>
+      <div class="cal-grid vcal">
+        <?php for ($t = $start; $t <= $end; $t = strtotime('+1 day', $t)): $d = date('Y-m-d', $t); $list = $ev[$d] ?? []; ?>
+          <div class="d<?= date('m', $t) !== date('m', $first) ? ' out' : '' ?><?= $d === $today ? ' today' : '' ?>">
+            <div class="d-flex justify-content-between"><span class="n"><?= date('j', $t) ?></span><?php if ($list): ?><span class="text-muted"><?= count($list) ?></span><?php endif; ?></div>
+            <?php foreach (array_slice($list, 0, 4) as $r): $cls = $r['status'] === 'yapildi' ? 'done' : ($d < $today ? 'late' : 'plan'); ?>
+              <a class="ev v-<?= $cls ?>" href="?islem=duzenle&id=<?= $r['id'] ?>" title="<?= e($r['hasta'] . ' (' . $r['sahip'] . ') — ' . $r['asi'] . ($r['dose_label'] ? ' · ' . $r['dose_label'] : '') . ' — ' . ($cls === 'done' ? 'Yapıldı' : ($cls === 'late' ? abs(days_diff($d)) . ' gün gecikti' : (days_diff($d) === 0 ? 'Bugün' : days_diff($d) . ' gün sonra')))) ?>"><?= $cls === 'done' ? '✓ ' : '' ?><?= e($r['hasta']) ?> · <?= e($r['asi']) ?></a>
+            <?php endforeach; ?>
+            <?php if (count($list) > 4): ?><a class="more" href="?sekme=<?= $d < $today ? 'yapilan' : 'yaklasan' ?>&gun=<?= max(1, days_diff($d)) ?>">+<?= count($list) - 4 ?> daha</a><?php endif; ?>
+          </div>
+        <?php endfor; ?>
+      </div>
+    </div></div>
+    <?php include APP . '/views/admin_footer.php';
+    exit;
+}
+
 $sql = "SELECT v.*, t.name AS asi, p.name AS hasta, p.id AS pid, s.icon, c.name AS sahip, c.phone FROM vaccinations v
         JOIN vaccine_types t ON t.id = v.vaccine_type_id JOIN patients p ON p.id = v.patient_id JOIN customers c ON c.id = p.customer_id
         LEFT JOIN species s ON s.id = p.species_id WHERE p.status = 'aktif' AND ";
 $prm = [];
+$gun = (int)get('gun', 30);
 switch ($tab) {
     case 'bugun': $sql .= "v.status = 'planlandi' AND v.due_date = ?"; $prm = [$today]; $order = 'p.name'; break;
     case 'geciken': $sql .= "v.status = 'planlandi' AND v.due_date < ?"; $prm = [$today]; $order = 'v.due_date DESC'; break;
-    case 'yapilan': $sql .= "v.status = 'yapildi'"; $order = 'v.done_date DESC'; break;
-    default: $tab = 'yaklasan'; $sql .= "v.status = 'planlandi' AND v.due_date >= ? AND v.due_date <= ?"; $prm = [$today, date('Y-m-d', strtotime('+' . (int)get('gun', 30) . ' days'))]; $order = 'v.due_date';
+    case 'yapilan': $sql .= "v.status = 'yapildi'"; $order = 'v.done_date DESC, v.due_date DESC'; break;
+    default: $tab = 'yaklasan'; $sql .= "v.status = 'planlandi' AND v.due_date >= ?"; $prm = [$today];
+        if ($gun > 0) { $sql .= ' AND v.due_date <= ?'; $prm[] = date('Y-m-d', strtotime('+' . $gun . ' days')); }
+        $order = 'v.due_date, p.name';
 }
-if ($sp = (int)get('tur')) { $sql .= ' AND p.species_id = ?'; $prm[] = $sp; }
+if ($sp) { $sql .= ' AND p.species_id = ?'; $prm[] = $sp; }
+if ($qs = trim((string)get('q'))) { $sql .= ' AND (p.name LIKE ? OR c.name LIKE ? OR t.name LIKE ?)'; array_push($prm, "%$qs%", "%$qs%", "%$qs%"); }
 $pg = paginate($sql . " ORDER BY $order", $prm, 40);
-$cnt = [
-    'bugun' => (int)val("SELECT COUNT(*) FROM vaccinations v JOIN patients p ON p.id = v.patient_id WHERE p.status='aktif' AND v.status='planlandi' AND v.due_date = ?", [$today]),
-    'geciken' => (int)val("SELECT COUNT(*) FROM vaccinations v JOIN patients p ON p.id = v.patient_id WHERE p.status='aktif' AND v.status='planlandi' AND v.due_date < ?", [$today]),
-];
-$tpl = wa_template('asi_hatirlatma');
 
-include APP . '/views/admin_header.php'; ?>
-<div class="page-head"><div><h1>Aşı Takvimi</h1><div class="sub">Planlanan, geciken ve yapılan aşılar</div></div>
-  <div class="d-flex gap-2 flex-wrap"><?php if (is_admin()): ?><a href="<?= url('admin/aktar.php?tur=asi') ?>" class="btn btn-outline-primary text-nowrap"><i class="bi bi-file-earmark-excel"></i> Excel'den Yükle</a><?php endif; ?><a href="<?= url('admin/asi-sihirbazi.php') ?>" class="btn btn-primary"><i class="bi bi-magic"></i> Otomatik Aşı Sihirbazı</a></div></div>
-<div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
-  <ul class="nav nav-pills">
-    <li class="nav-item"><a class="nav-link <?= $tab === 'bugun' ? 'active' : '' ?>" href="?sekme=bugun">Bugün <span class="badge text-bg-light"><?= $cnt['bugun'] ?></span></a></li>
-    <li class="nav-item"><a class="nav-link <?= $tab === 'yaklasan' ? 'active' : '' ?>" href="?sekme=yaklasan">Yaklaşan</a></li>
-    <li class="nav-item"><a class="nav-link <?= $tab === 'geciken' ? 'active' : '' ?>" href="?sekme=geciken">Geciken <span class="badge text-bg-danger"><?= $cnt['geciken'] ?></span></a></li>
-    <li class="nav-item"><a class="nav-link <?= $tab === 'yapilan' ? 'active' : '' ?>" href="?sekme=yapilan">Yapılanlar</a></li>
-  </ul>
-  <form class="d-flex gap-2"><input type="hidden" name="sekme" value="<?= e($tab) ?>">
-    <?php if ($tab === 'yaklasan'): ?><select name="gun" class="form-select form-select-sm"><?= options(['7' => '7 gün', '15' => '15 gün', '30' => '30 gün', '60' => '60 gün', '90' => '90 gün'], get('gun', '30')) ?></select><?php endif; ?>
-    <select name="tur" class="form-select form-select-sm"><?= options(species_list(), get('tur'), 'id', 'name', 'Tüm türler') ?></select><button class="btn btn-sm btn-light">Filtrele</button></form>
+include APP . '/views/admin_header.php';
+$head(); ?>
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-3 align-items-center">
+  <?php $tabs(); ?>
+  <form class="d-flex gap-2 flex-wrap align-items-center"><input type="hidden" name="sekme" value="<?= e($tab) ?>">
+    <input name="q" class="form-control form-control-sm" style="width:180px" placeholder="Hasta, sahip, aşı…" value="<?= e(get('q')) ?>">
+    <?php if ($tab === 'yaklasan'): ?><select name="gun" class="form-select form-select-sm w-auto"><?= options(['7' => '7 gün içinde', '15' => '15 gün içinde', '30' => '30 gün içinde', '60' => '60 gün içinde', '90' => '90 gün içinde', '365' => '1 yıl içinde', '0' => 'Tümü'], (string)$gun) ?></select><?php endif; ?>
+    <select name="tur" class="form-select form-select-sm w-auto"><?= options(species_list(), $sp ?: '', 'id', 'name', 'Tüm türler') ?></select><button class="btn btn-sm btn-light"><i class="bi bi-funnel"></i></button></form>
 </div>
 <div class="card"><div class="table-responsive"><table class="table table-hover align-middle">
-  <thead><tr><th>Hasta</th><th>Sahibi</th><th>Aşı</th><th><?= $tab === 'yapilan' ? 'Yapıldı' : 'Tarih' ?></th><th></th></tr></thead><tbody>
+  <thead><tr><th>Hasta</th><th>Sahibi</th><th>Aşı</th><th><?= $tab === 'yapilan' ? 'Uygulama Tarihi' : 'Planlanan Tarih' ?></th><th>Durum</th><th></th></tr></thead><tbody>
   <?php foreach ($pg['rows'] as $v):
       $msg = $tpl ? wa_render($tpl['body'], ['musteri' => $v['sahip'], 'hasta' => $v['hasta'], 'asi' => $v['asi'], 'tarih' => dt($v['due_date']), 'zaman' => dt($v['due_date'])]) : ''; ?>
     <tr>
       <td><div class="d-flex align-items-center gap-2"><div class="pet-avatar"><?= species_icon($v['icon']) ?></div><a class="fw-bold" href="<?= url('admin/hasta.php?id=' . $v['pid']) ?>"><?= e($v['hasta']) ?></a></div></td>
       <td><?= e($v['sahip']) ?><div class="small text-muted"><?= e(phone_fmt($v['phone'])) ?></div></td>
-      <td><span class="fw-bold" style="color:#db2777"><?= e($v['asi']) ?></span><div class="small text-muted"><?= e($v['dose_label']) ?></div></td>
-      <td><?php if ($tab === 'yapilan'): ?><?= dt($v['done_date']) ?><?php else: $dd = days_diff($v['due_date']); ?><?= dt($v['due_date']) ?><div class="small <?= $dd < 0 ? 'text-danger fw-bold' : 'text-muted' ?>"><?= $dd === 0 ? 'Bugün' : ($dd < 0 ? abs($dd) . ' gün gecikti' : $dd . ' gün kaldı') ?></div><?php endif; ?></td>
+      <td><span class="vac-name"><?= e($v['asi']) ?></span><div class="small text-muted"><?= e($v['dose_label']) ?></div></td>
+      <td class="text-nowrap"><?= $tab === 'yapilan' ? dt($v['done_date'] ?: $v['due_date']) : dt_long($v['due_date']) ?><?php if ($tab === 'yapilan' && $v['done_date'] && $v['done_date'] !== $v['due_date']): ?><div class="small text-muted">Plan: <?= dt($v['due_date']) ?></div><?php endif; ?></td>
+      <td><?= vacc_due_badge($v) ?></td>
       <td class="text-end text-nowrap">
         <?php if ($v['status'] === 'planlandi'): ?>
           <form method="post" class="d-inline"><?= csrf_field() ?><input type="hidden" name="islem" value="yapildi"><input type="hidden" name="id" value="<?= $v['id'] ?>"><button class="btn btn-sm btn-outline-success" title="Yapıldı"><i class="bi bi-check-lg"></i></button></form>
-          <a class="btn btn-sm btn-outline-success" target="_blank" title="WhatsApp hatırlat" href="<?= e(wa_link($v['phone'], $msg)) ?>"><i class="bi bi-whatsapp"></i></a>
+          <?php if ($v['phone']): ?><a class="btn btn-sm btn-outline-success" target="_blank" title="WhatsApp hatırlat" href="<?= e(wa_link($v['phone'], $msg)) ?>"><i class="bi bi-whatsapp"></i></a><?php endif; ?>
           <form method="post" class="d-inline"><?= csrf_field() ?><input type="hidden" name="islem" value="ertele"><input type="hidden" name="id" value="<?= $v['id'] ?>"><button class="btn btn-sm btn-light" title="1 hafta ertele"><i class="bi bi-clock-history"></i></button></form>
         <?php endif; ?>
         <a class="btn btn-sm btn-light" href="?islem=duzenle&id=<?= $v['id'] ?>"><i class="bi bi-pencil"></i></a>
       </td>
     </tr>
   <?php endforeach; ?>
-  <?php if (!$pg['rows']): ?><tr><td colspan="5" class="empty"><i class="bi bi-eyedropper"></i>Kayıt yok.</td></tr><?php endif; ?>
-  </tbody></table></div><div class="card-footer bg-white"><?= pager($pg) ?></div></div>
+  <?php if (!$pg['rows']): ?><tr><td colspan="6" class="empty"><i class="bi bi-eyedropper"></i>Kayıt yok.</td></tr><?php endif; ?>
+  </tbody></table></div><div class="card-footer bg-white d-flex justify-content-between align-items-center"><span class="small text-muted"><?= $pg['total'] ?> kayıt</span><?= pager($pg) ?></div></div>
 <?php include APP . '/views/admin_footer.php';

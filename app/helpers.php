@@ -140,6 +140,18 @@ function days_diff(string $date): int
     return (int)floor((strtotime($date) - strtotime(today())) / 86400);
 }
 
+/** Aşı için kalan süre rozeti: "15 gün sonra", "Yarın", "3 gün gecikti", "Yapıldı" */
+function vacc_due_badge(array $v): string
+{
+    if (($v['status'] ?? '') === 'yapildi') return '<span class="due-badge done"><i class="bi bi-check2-circle"></i> Yapıldı' . (!empty($v['done_date']) ? ' · ' . dt($v['done_date']) : '') . '</span>';
+    if (($v['status'] ?? '') === 'iptal') return '<span class="due-badge off">İptal</span>';
+    $d = days_diff($v['due_date']);
+    if ($d === 0) return '<span class="due-badge today"><i class="bi bi-alarm"></i> Bugün yapılacak</span>';
+    if ($d === 1) return '<span class="due-badge soon"><i class="bi bi-hourglass-split"></i> Yarın yapılacak</span>';
+    if ($d < 0) return '<span class="due-badge late"><i class="bi bi-exclamation-circle"></i> ' . abs($d) . ' gün gecikti</span>';
+    return '<span class="due-badge ' . ($d <= 7 ? 'soon' : 'plan') . '"><i class="bi bi-calendar-event"></i> ' . $d . ' gün sonra yapılacak</span>';
+}
+
 /** Telefonu 90XXXXXXXXXX biçimine çevirir */
 function phone_norm(?string $p): string
 {

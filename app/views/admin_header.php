@@ -27,7 +27,9 @@ $menu = [
         ['Hayvan Kategorileri', 'tags', url('admin/kategoriler.php')],
     ]],
     'asi' => ['Aşı Takvimi', 'eyedropper', null, [
-        ['Aşı Takvimi', 'calendar2-week', url('admin/asilar.php')],
+        ['Aşı Takvimi (Aylık)', 'calendar3', url('admin/asilar.php?sekme=takvim')],
+        ['Yaklaşan Aşılar', 'calendar2-week', url('admin/asilar.php?sekme=yaklasan')],
+        ['Geciken Aşılar', 'exclamation-circle', url('admin/asilar.php?sekme=geciken')],
         ['Otomatik Aşı Sihirbazı', 'magic', url('admin/asi-sihirbazi.php')],
         ['Aşı Tanımları & Protokoller', 'sliders', url('admin/asi-tanimlari.php')],
     ]],

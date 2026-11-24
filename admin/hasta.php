@@ -100,7 +100,7 @@ include APP . '/views/admin_header.php'; ?>
         <?php foreach ($vaccs as $v): $late = $v['status'] === 'planlandi' && $v['due_date'] < today(); ?>
           <tr class="<?= $late ? 'table-danger' : '' ?>">
             <td class="fw-bold"><?= e($v['asi']) ?></td><td class="small"><?= e($v['dose_label']) ?></td>
-            <td><?= dt($v['due_date']) ?><?= $late ? ' <span class="badge text-bg-danger">Gecikti</span>' : '' ?></td>
+            <td><?= dt($v['due_date']) ?><div><?= vacc_due_badge($v) ?></div></td>
             <td><?= dt($v['done_date']) ?></td><td class="small"><?= e($v['batch_no'] ?: '') ?> <?= $v['price'] > 0 ? money($v['price']) : '' ?></td>
             <td><?= status_badge($v['status']) ?></td>
             <td class="text-end text-nowrap">

@@ -61,7 +61,7 @@ if (is_post()) {
         }
         try {
             [$k, $recs] = imp_load($info['path'], $info['name'], $info['kind']);
-            $opt = ['eski_iptal' => post('eski_iptal') ? max(1, (int)post('eski_gun', 180)) : 0, 'hizmet_ekle' => (bool)post('hizmet_ekle')];
+            $opt = ['hizmet_ekle' => (bool)post('hizmet_ekle')];
             $st = imp_run($k, $recs, $opt);
             $msg = '<b>' . e($kinds[$k]['title']) . '</b> aktarıldı: ' . $st['yeni'] . ' yeni, ' . $st['guncelle'] . ' güncellendi'
                 . ($st['atla'] ? ', ' . $st['atla'] . ' satır atlandı' : '')
@@ -92,7 +92,7 @@ if (is_post()) {
 }
 
 $counts = imp_counts();
-$targets = ['musteri' => 'admin/musteriler.php', 'hasta' => 'admin/hastalar.php', 'urun' => 'admin/urunler.php', 'asi' => 'admin/asilar.php?sekme=yaklasan', 'satis' => 'admin/satislar.php?baslangic=2000-01-01'];
+$targets = ['musteri' => 'admin/musteriler.php', 'hasta' => 'admin/hastalar.php', 'urun' => 'admin/urunler.php', 'asi' => 'admin/asilar.php?sekme=takvim', 'satis' => 'admin/satislar.php?baslangic=2000-01-01'];
 $order = array_keys($kinds);
 
 include APP . '/views/admin_header.php'; ?>
@@ -134,8 +134,7 @@ include APP . '/views/admin_header.php'; ?>
     <form method="post" class="card-footer bg-white">
       <?= csrf_field() ?><input type="hidden" name="token" value="<?= e($preview['token']) ?>">
       <?php if ($k === 'asi'): ?>
-        <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="eski_iptal" value="1" id="eskiI">
-          <label class="form-check-label" for="eskiI">Tarihi <input type="number" name="eski_gun" value="180" min="1" class="form-control form-control-sm d-inline-block" style="width:80px"> günden eski olup <b>yapılmamış</b> aşıları "iptal" olarak aktar (geciken listesini kalabalık etmesin)</label></div>
+        <div class="alert alert-light border small mb-2"><i class="bi bi-calendar2-check text-primary me-1"></i> Aşılar Excel'deki tarihleriyle takvime eklenir: <b>Yapıldı</b> olanlar yapıldı olarak işlenir, <b>Yapılmadı</b> olanlar kendi tarihine planlanır ve "15 gün sonra yapılacak" gibi kalan süreyle görünür. Tarihi geçmiş olanlar "geciken" listesine düşer.</div>
       <?php endif; ?>
       <?php if ($k === 'satis'): ?>
         <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="hizmet_ekle" value="1" id="hzE">

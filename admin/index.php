@@ -29,7 +29,7 @@ $vSql = "SELECT v.*, t.name AS asi, p.name AS hasta, p.id AS pid, s.icon, c.name
          JOIN customers c ON c.id = p.customer_id LEFT JOIN species s ON s.id = p.species_id
          WHERE v.status = 'planlandi' AND p.status = 'aktif' AND ";
 $vToday = rows($vSql . 'v.due_date = ? ORDER BY p.name', [$today]);
-$vSoon = rows($vSql . 'v.due_date > ? AND v.due_date <= ? ORDER BY v.due_date LIMIT 30', [$today, date('Y-m-d', strtotime('+7 days'))]);
+$vSoon = rows($vSql . 'v.due_date > ? AND v.due_date <= ? ORDER BY v.due_date LIMIT 30', [$today, date('Y-m-d', strtotime('+15 days'))]);
 $vLate = rows($vSql . 'v.due_date < ? ORDER BY v.due_date DESC LIMIT 30', [$today]);
 
 $aSql = "SELECT a.*, p.name AS hasta, s.icon, c.name AS sahip, c.phone FROM appointments a LEFT JOIN patients p ON p.id = a.patient_id
@@ -62,7 +62,7 @@ function vacc_rows(array $list, string $emptyText): void
           </div>
           <div class="flex-grow-1" style="min-width:0">
             <div class="vac-name"><?= e($v['asi']) ?><?php if ($v['dose_label']): ?> <span class="text-muted fw-normal text-capitalize">· <?= e($v['dose_label']) ?></span><?php endif; ?></div>
-            <div class="small <?= $late ? 'text-danger fw-bold' : '' ?>"><?= dt_long($v['due_date']) ?></div>
+            <div class="small"><?= dt_long($v['due_date']) ?></div><?= vacc_due_badge($v) ?>
           </div>
           <div class="d-flex gap-1">
             <form method="post" action="<?= url('admin/asilar.php') ?>"><?= csrf_field() ?><input type="hidden" name="islem" value="yapildi"><input type="hidden" name="id" value="<?= $v['id'] ?>">
@@ -185,7 +185,7 @@ include APP . '/views/admin_header.php';
       </div>
       <div class="card-body pt-1" style="max-height:430px;overflow:auto">
         <div id="vToday" class="vpanel"><?php vacc_rows($vToday, 'Bugün planlanmış aşı yok.'); ?></div>
-        <div id="vSoon" class="vpanel d-none"><?php vacc_rows($vSoon, 'Önümüzdeki 7 gün için aşı yok.'); ?></div>
+        <div id="vSoon" class="vpanel d-none"><?php vacc_rows($vSoon, 'Önümüzdeki 15 gün için aşı yok.'); ?></div>
         <div id="vLate" class="vpanel d-none"><?php vacc_rows($vLate, 'Geciken aşı yok, harika!'); ?></div>
       </div>
     </div>

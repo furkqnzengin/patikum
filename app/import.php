@@ -584,7 +584,9 @@ function imp_preview(string $kind, array $records): array
                 if (!$due) { $act = 'atla'; $warn[] = 'Tarih okunamadı'; }
                 elseif (imp_map_get('asi', imp_vac_key($r))) $act = 'guncelle';
                 [$canon, $dose] = imp_vaccine_parts($r['vaccine'] ?? '');
-                $cells = [imp_text($r['pat_name'] ?? ''), imp_text($r['cust_name'] ?? ''), $canon . ($dose ? ' · ' . $dose : ''), $due ? dt($due) : '?', $done ? 'Yapıldı' : 'Planlandı'];
+                $when = '';
+                if ($due && !$done) { $dd = days_diff($due); $when = $dd === 0 ? ' · bugün' : ($dd > 0 ? ' · ' . $dd . ' gün sonra' : ' · ' . abs($dd) . ' gün gecikti'); }
+                $cells = [imp_text($r['pat_name'] ?? ''), imp_text($r['cust_name'] ?? ''), $canon . ($dose ? ' · ' . $dose : ''), $due ? dt($due) : '?', $done ? 'Yapıldı' . (($dt = imp_date($r['done'] ?? '')) ? ' (' . dt($dt) . ')' : '') : 'Planlandı' . $when];
                 break;
             case 'satis':
                 $date = imp_date($r['date'] ?? '');
@@ -819,8 +821,6 @@ function imp_row_asi(array $r, array &$st, array $opt): string
     $isDone = imp_key($r['status'] ?? '') === 'yapildi';
     $status = $isDone ? 'yapildi' : 'planlandi';
     $doneDate = $isDone ? (imp_date($r['done'] ?? '') ?? $due) : null;
-    $oldDays = (int)($opt['eski_iptal'] ?? 0);
-    if (!$isDone && $oldDays > 0 && $due < date('Y-m-d', strtotime('-' . $oldDays . ' days'))) $status = 'iptal';
     $notes = [];
     if (($loc = imp_text($r['location'] ?? '')) !== '') $notes[] = $loc;
     $data = [

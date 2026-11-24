@@ -31,7 +31,7 @@ include APP . '/views/panel_header.php'; ?>
       <?php foreach ($vaccs as $v): $late = $v['status'] === 'planlandi' && $v['due_date'] < today(); ?>
         <tr><td class="fw-bold"><?= e($v['asi']) ?></td><td class="small"><?= e($v['dose_label']) ?></td>
           <td><?= $v['status'] === 'yapildi' ? dt($v['done_date']) : dt($v['due_date']) ?></td>
-          <td><?= $v['status'] === 'yapildi' ? '<span class="badge text-bg-success">Yapıldı</span>' : ($late ? '<span class="badge text-bg-danger">Gecikti</span>' : '<span class="badge text-bg-info">Planlandı · ' . days_diff($v['due_date']) . ' gün</span>') ?></td></tr>
+          <td><?php $dd = days_diff($v['due_date']); ?><?= $v['status'] === 'yapildi' ? '<span class="badge text-bg-success">Yapıldı</span>' : ($late ? '<span class="badge text-bg-danger">' . abs($dd) . ' gün gecikti</span>' : '<span class="badge text-bg-info">' . ($dd === 0 ? 'Bugün' : $dd . ' gün sonra') . '</span>') ?></td></tr>
       <?php endforeach; ?>
       <?php if (!$vaccs): ?><tr><td colspan="4" class="text-muted">Aşı kaydı yok.</td></tr><?php endif; ?>
       </tbody></table></div></div>
