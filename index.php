@@ -35,14 +35,14 @@ if (is_post() && post('form') === 'randevu' && $webAppt) {
 }
 
 $services = [
-    ['Genel Muayene', 'Detaylı fiziksel muayene, tanı ve tedavi planlaması.', 'clipboard2-pulse', '#ccfbf1', '#0f766e'],
-    ['Aşılama', 'Türüne ve yaşına özel aşı takvimi, otomatik hatırlatmalar.', 'eyedropper', '#fce7f3', '#db2777'],
-    ['Cerrahi Operasyon', 'Kısırlaştırma ve yumuşak doku operasyonları, steril ortam.', 'bandaid', '#e0f2fe', '#0369a1'],
-    ['Laboratuvar', 'Kan tahlili, biyokimya ve hızlı test kitleri ile hızlı sonuç.', 'droplet-half', '#ede9fe', '#6d28d9'],
-    ['Diş Bakımı', 'Diş taşı temizliği, ağız ve diş sağlığı kontrolü.', 'emoji-smile', '#fef9c3', '#a16207'],
-    ['Tıraş & Bakım', 'Banyo, tüy kesimi, tırnak bakımı ve kulak temizliği.', 'scissors', '#ffedd5', '#c2410c'],
-    ['Mikroçip & Pasaport', 'Kimliklendirme, yurt dışı çıkış evrakları ve pasaport.', 'upc-scan', '#dcfce7', '#15803d'],
-    ['Parazit Koruması', 'İç ve dış parazit uygulamaları, düzenli koruma programı.', 'shield-check', '#fee2e2', '#b91c1c'],
+    ['Genel Muayene', 'Baştan kuyruğa detaylı fiziksel muayene, doğru tanı ve kişiye özel tedavi planı.', 'clipboard2-pulse', 'mint'],
+    ['Aşılama', 'Türüne ve yaşına göre aşı takvimi; zamanı geldiğinde WhatsApp ile hatırlatırız.', 'shield-plus', 'rose'],
+    ['Cerrahi', 'Kısırlaştırma ve yumuşak doku operasyonları; steril ameliyathane, güvenli anestezi.', 'bandaid', 'sky'],
+    ['Laboratuvar', 'Hemogram, biyokimya ve hızlı test kitleriyle dakikalar içinde sonuç.', 'droplet-half', 'lilac'],
+    ['Görüntüleme', 'Dijital röntgen ile kırık, yabancı cisim ve iç organ değerlendirmesi.', 'radioactive', 'sand'],
+    ['Diş Bakımı', 'Diş taşı temizliği, diş çekimi ve ağız sağlığı kontrolleri.', 'emoji-smile', 'apricot'],
+    ['Mikroçip & Pasaport', 'Kimliklendirme, pasaport ve yurt dışı çıkış evrakları.', 'upc-scan', 'mint'],
+    ['Parazit Koruması', 'İç ve dış parazitlere karşı düzenli koruma programı.', 'bug', 'rose'],
 ];
 $vacc = [];
 foreach (['Kedi', 'Köpek'] as $sp) {
@@ -50,6 +50,18 @@ foreach (['Kedi', 'Köpek'] as $sp) {
 }
 $wa = setting('clinic_whatsapp');
 $map = setting('clinic_map');
+$heroImg = setting('site_hero_image');
+$heroImg = ($heroImg && preg_match('#^https?://#i', $heroImg)) ? $heroImg : '';
+$about = setting('site_about', $name . ', kedi ve köpeklerden kuşlara kadar tüm evcil dostlarımıza modern tıbbın imkânlarını şefkatle sunar. Dostunuzun tüm sağlık geçmişini dijital olarak saklıyor, aşı zamanlarını sizin yerinize takip ediyor ve WhatsApp üzerinden hatırlatıyoruz.');
+$phone = setting('clinic_phone');
+$tel = preg_replace('/[^0-9+]/', '', $phone);
+$hoursFirst = trim(strtok((string)setting('clinic_hours'), "\n") ?: '');
+$faqs = [
+    ['Randevusuz gelebilir miyim?', 'Elbette. Ancak bekleme sürenizi kısaltmak için online randevu formunu veya WhatsApp hattımızı kullanmanızı öneririz. Acil durumlarda doğrudan arayabilirsiniz.'],
+    ['Yavru kedi / köpeğimin aşılarına ne zaman başlamalıyım?', 'Genellikle 6–8. haftada iç-dış parazit uygulaması ile başlanır, karma aşılar 8. haftadan itibaren yapılır. İlk muayenede dostunuza özel aşı takvimi oluşturup her aşıdan önce size hatırlatıyoruz.'],
+    ['Aşı ve işlem geçmişimi nereden görebilirim?', 'Müşteri panelimize telefon numaranız ve size iletilen şifre ile giriş yaparak tüm aşı karnesine, yapılan işlemlere ve hesap durumunuza 7/24 ulaşabilirsiniz.'],
+    ['Kısırlaştırma için ne zaman getirmeliyim?', 'Kedilerde genellikle 5–6 ay, köpeklerde ırka göre 6–12 ay önerilir. Operasyon öncesi kontrol muayenesi ve kan tahlili ile güvenliği sağlıyoruz.'],
+];
 ?><!doctype html>
 <html lang="tr">
 <head>
@@ -57,204 +69,302 @@ $map = setting('clinic_map');
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($name) ?> · <?= e(setting('clinic_slogan', 'Veteriner Kliniği')) ?></title>
 <meta name="description" content="<?= e($name) ?> — muayene, aşılama, cerrahi, laboratuvar, bakım ve online randevu. Patili dostlarınız için sevgiyle, bilimle.">
+<meta name="theme-color" content="#10302a">
 <meta property="og:title" content="<?= e($name) ?>">
+<meta property="og:description" content="<?= e(setting('clinic_slogan', 'Patili dostlarınız için sevgiyle, bilimle.')) ?>">
 <meta property="og:type" content="website">
+<?php if ($heroImg): ?><meta property="og:image" content="<?= e($heroImg) ?>"><?php endif; ?>
 <link rel="icon" href="<?= asset('img/favicon.svg') ?>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 <link href="<?= asset('css/site.css') ?>" rel="stylesheet">
-<script type="application/ld+json"><?= json_encode(['@context' => 'https://schema.org', '@type' => 'VeterinaryCare', 'name' => $name, 'telephone' => setting('clinic_phone'), 'address' => setting('clinic_address'), 'url' => site_url()], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
+<script type="application/ld+json"><?= json_encode(['@context' => 'https://schema.org', '@type' => 'VeterinaryCare', 'name' => $name, 'telephone' => $phone, 'address' => setting('clinic_address'), 'url' => site_url()], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
 </head>
-<body>
-<nav class="site-nav navbar navbar-expand-lg">
+<body class="site">
+<div class="topline d-none d-md-block">
+  <div class="container d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-geo-alt"></i> <?= e(strtok((string)setting('clinic_address'), "\n")) ?></span>
+    <span class="d-flex gap-3">
+      <?php if ($hoursFirst): ?><span><i class="bi bi-clock"></i> <?= e($hoursFirst) ?></span><?php endif; ?>
+      <?php if ($phone): ?><a href="tel:<?= e($tel) ?>"><i class="bi bi-telephone"></i> <?= e($phone) ?></a><?php endif; ?>
+    </span>
+  </div>
+</div>
+<nav class="site-nav navbar navbar-expand-lg" id="top">
   <div class="container">
-    <a class="brand" href="#"><img src="<?= asset('img/favicon.svg') ?>" alt=""> patikum</a>
-    <button class="navbar-toggler border-0" data-bs-toggle="collapse" data-bs-target="#nv"><i class="bi bi-list fs-2"></i></button>
+    <a class="brand" href="#top"><span class="brand-mark"><img src="<?= asset('img/favicon.svg') ?>" alt=""></span><span>patikum<small>veteriner kliniği</small></span></a>
+    <button class="navbar-toggler border-0 shadow-none" data-bs-toggle="collapse" data-bs-target="#nv" aria-label="Menü"><i class="bi bi-list fs-2"></i></button>
     <div class="collapse navbar-collapse" id="nv">
-      <ul class="navbar-nav mx-auto gap-lg-2">
+      <ul class="navbar-nav mx-auto gap-lg-1">
         <li class="nav-item"><a class="nav-link" href="#hizmetler">Hizmetler</a></li>
         <li class="nav-item"><a class="nav-link" href="#hakkimizda">Hakkımızda</a></li>
-        <li class="nav-item"><a class="nav-link" href="#asi">Aşı Takvimi</a></li>
+        <li class="nav-item"><a class="nav-link" href="#asi">Aşı Programı</a></li>
+        <li class="nav-item"><a class="nav-link" href="#sss">Sık Sorulanlar</a></li>
         <li class="nav-item"><a class="nav-link" href="#iletisim">İletişim</a></li>
       </ul>
-      <div class="d-flex gap-2 py-2">
-        <a href="<?= url('panel/') ?>" class="btn btn-ghost"><i class="bi bi-person-heart"></i> Müşteri Paneli</a>
-        <?php if ($webAppt): ?><a href="#randevu" class="btn btn-coral">Randevu Al</a><?php endif; ?>
+      <div class="d-flex gap-2 py-2 py-lg-0">
+        <a href="<?= url('panel/') ?>" class="btn btn-soft"><i class="bi bi-person-heart"></i> Müşteri Paneli</a>
+        <?php if ($webAppt): ?><a href="#randevu" class="btn btn-brand">Randevu Al <i class="bi bi-arrow-right"></i></a><?php endif; ?>
       </div>
     </div>
   </div>
 </nav>
 
 <header class="hero">
-  <span class="paw-bg" style="top:12%;left:4%">🐾</span><span class="paw-bg" style="bottom:10%;left:45%">🐾</span>
   <div class="container">
-    <div class="row align-items-center g-5">
-      <div class="col-lg-6">
-        <span class="badge rounded-pill text-bg-light border px-3 py-2 mb-3 fw-bold"><i class="bi bi-heart-fill text-danger"></i> <?= e(setting('clinic_slogan', 'Patili dostlarınız için sevgiyle, bilimle.')) ?></span>
-        <h1>Dostunuzun sağlığı <span>bizim için</span> bir aile meselesi.</h1>
-        <p class="lead my-4"><?= e($name) ?>; muayeneden aşılamaya, cerrahiden bakıma kadar kedi, köpek ve tüm evcil dostlarınız için modern ve şefkatli veteriner hizmeti sunar.</p>
-        <div class="d-flex flex-wrap gap-2">
-          <?php if ($webAppt): ?><a href="#randevu" class="btn btn-coral btn-lg"><i class="bi bi-calendar-heart"></i> Online Randevu</a><?php endif; ?>
-          <?php if ($wa): ?><a href="<?= e(wa_link($wa, 'Merhaba, bilgi almak istiyorum.')) ?>" target="_blank" rel="noopener" class="btn btn-ghost btn-lg"><i class="bi bi-whatsapp"></i> WhatsApp'tan Yazın</a><?php endif; ?>
+    <div class="row align-items-center g-4 g-lg-5">
+      <div class="col-lg-6 hero-copy">
+        <span class="eyebrow-pill"><span class="dot"></span> <?= e(setting('clinic_slogan', 'Patili dostlarınız için sevgiyle, bilimle.')) ?></span>
+        <h1>Dostunuz için <em>en iyi bakım</em>, en yakın klinikte.</h1>
+        <p class="lead"><?= e($name) ?>; muayeneden aşılamaya, cerrahiden laboratuvara kadar kedi, köpek ve tüm evcil dostlarınız için modern ve şefkatli veteriner hekimliği sunar.</p>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <?php if ($webAppt): ?><a href="#randevu" class="btn btn-brand btn-lg"><i class="bi bi-calendar-heart"></i> Online Randevu</a><?php endif; ?>
+          <?php if ($wa): ?><a href="<?= e(wa_link($wa, 'Merhaba, bilgi almak istiyorum.')) ?>" target="_blank" rel="noopener" class="btn btn-wa btn-lg"><i class="bi bi-whatsapp"></i> WhatsApp'tan Yazın</a><?php endif; ?>
         </div>
+        <ul class="hero-trust">
+          <li><i class="bi bi-journal-medical"></i> Dijital sağlık karnesi</li>
+          <li><i class="bi bi-bell"></i> Aşı & randevu hatırlatma</li>
+          <li><i class="bi bi-heart"></i> Kedi, köpek & egzotik</li>
+        </ul>
       </div>
       <div class="col-lg-6">
-        <div class="hero-art">
-          <div class="blob"></div>
-          <div class="pet">🐶</div>
-          <div class="chip c1"><i class="bi bi-calendar2-check text-success"></i> Aşı takviminiz hazır!</div>
-          <div class="chip c2"><span style="font-size:1.6rem">🐱</span> Luna'nın kontrolü <br>yarın 14:30</div>
-          <div class="chip c3"><i class="bi bi-whatsapp text-success"></i> Otomatik hatırlatma</div>
+        <div class="hero-visual">
+          <div class="hv-card<?= $heroImg ? ' has-img' : '' ?>">
+            <?php if ($heroImg): ?>
+              <img src="<?= e($heroImg) ?>" alt="<?= e($name) ?>" loading="eager">
+            <?php else: ?>
+              <div class="hv-art" aria-hidden="true">
+                <span class="ring r1"></span><span class="ring r2"></span><span class="ring r3"></span>
+                <img class="paw-big" src="<?= asset('img/favicon.svg') ?>" alt="">
+                <span class="pet pet-a">🐶</span><span class="pet pet-b">🐱</span>
+              </div>
+            <?php endif; ?>
+          </div>
+          <div class="float-card fc1"><span class="ic mint"><i class="bi bi-shield-check"></i></span><div><b>Aşı takvimi hazır</b><small>Zamanı gelince hatırlatırız</small></div></div>
+          <div class="float-card fc2"><span class="ic wa"><i class="bi bi-whatsapp"></i></span><div><b>WhatsApp hattı</b><small>Sorularınıza hızlı yanıt</small></div></div>
+          <?php if ($hoursFirst): ?><div class="float-card fc3"><span class="ic apricot"><i class="bi bi-clock"></i></span><div><b>Çalışma saatleri</b><small><?= e($hoursFirst) ?></small></div></div><?php endif; ?>
         </div>
       </div>
     </div>
   </div>
 </header>
 
-<div class="container">
-  <div class="stat-strip row text-center g-3">
-    <div class="col-6 col-md-3"><div class="n"><i class="bi bi-journal-medical"></i></div><div class="l">Dijital Sağlık Karnesi</div></div>
-    <div class="col-6 col-md-3"><div class="n"><i class="bi bi-whatsapp"></i></div><div class="l">Aşı & Randevu Hatırlatma</div></div>
-    <div class="col-6 col-md-3"><div class="n"><i class="bi bi-calendar-heart"></i></div><div class="l">Online Randevu</div></div>
-    <div class="col-6 col-md-3"><div class="n">🐾</div><div class="l">Kedi, Köpek & Egzotik</div></div>
-  </div>
-</div>
+<div class="ticker" aria-hidden="true"><div class="ticker-track">
+  <?php for ($k = 0; $k < 2; $k++): foreach ($services as [$t, , $i]): ?><span><i class="bi bi-<?= $i ?>"></i> <?= e($t) ?></span><?php endforeach; endfor; ?>
+</div></div>
 
 <section class="section" id="hizmetler">
   <div class="container">
-    <div class="section-title"><div class="eyebrow">Hizmetlerimiz</div><h2>Tüm ihtiyaçlar için tek adres</h2><p>Deneyimli hekim kadromuz ve modern ekipmanlarımızla dostlarınızın her ihtiyacına yanıt veriyoruz.</p></div>
-    <div class="row g-4">
-      <?php foreach ($services as [$t, $d, $i, $bg, $c]): ?>
-        <div class="col-md-6 col-lg-3"><div class="service"><div class="ic" style="background:<?= $bg ?>;color:<?= $c ?>"><i class="bi bi-<?= $i ?>"></i></div><h3><?= $t ?></h3><p><?= $d ?></p></div></div>
+    <div class="sec-head">
+      <div><span class="eyebrow">Hizmetlerimiz</span><h2>Dostunuzun tüm ihtiyaçları <em>tek çatı</em> altında</h2></div>
+      <p>Deneyimli hekim kadromuz ve modern ekipmanlarımızla koruyucu hekimlikten cerrahiye kadar her adımda yanınızdayız.</p>
+    </div>
+    <div class="row g-3 g-lg-4">
+      <?php foreach ($services as $n => [$t, $d, $i, $tone]): ?>
+        <div class="col-sm-6 col-lg-3"><article class="svc tone-<?= $tone ?>">
+          <span class="num"><?= sprintf('%02d', $n + 1) ?></span>
+          <div class="ic"><i class="bi bi-<?= $i ?>"></i></div>
+          <h3><?= e($t) ?></h3><p><?= e($d) ?></p>
+        </article></div>
       <?php endforeach; ?>
     </div>
   </div>
 </section>
 
-<section class="section pt-0" id="hakkimizda">
-  <div class="container"><div class="row g-5 align-items-stretch">
-    <div class="col-lg-5"><div class="about-card">
-      <div class="eyebrow fw-bold text-uppercase small opacity-75">Neden Patikum?</div>
-      <h2 class="mt-2">Her pati bizim için özel.</h2>
-      <p class="opacity-75 mt-3">Dostunuzun tüm sağlık geçmişini dijital olarak tutuyor, aşı zamanlarını sizin yerinize takip ediyor ve WhatsApp üzerinden hatırlatıyoruz. Siz sadece sevmeye devam edin.</p>
-      <div class="big">🐾</div>
-    </div></div>
-    <div class="col-lg-7"><div class="row">
+<section class="section about" id="hakkimizda">
+  <div class="container"><div class="row g-4 g-lg-5 align-items-center">
+    <div class="col-lg-5">
+      <div class="about-visual">
+        <div class="av-main"><img src="<?= asset('img/favicon.svg') ?>" alt=""><b>Her pati<br>bizim için özel.</b></div>
+        <div class="av-badge"><i class="bi bi-heart-pulse"></i><span>Koruyucu<br>hekimlik</span></div>
+      </div>
+    </div>
+    <div class="col-lg-7">
+      <span class="eyebrow">Neden <?= e(explode(' ', $name)[0]) ?>?</span>
+      <h2>Sağlıklı bir yaşam, <em>düzenli takiple</em> başlar.</h2>
+      <p class="text-muted fs-6 mt-3"><?= nl2br(e($about)) ?></p>
+      <div class="row g-3 mt-2">
+        <?php foreach ([
+            ['heart-pulse', 'Uzman ve şefkatli ekip', 'Dostunuzun stresini azaltan, sabırlı hekimler.'],
+            ['phone', 'Dijital sağlık karnesi', 'Tüm geçmişe müşteri panelinden 7/24 erişim.'],
+            ['whatsapp', 'Otomatik hatırlatmalar', 'Aşı ve randevu zamanında WhatsApp mesajı.'],
+            ['shield-check', 'Steril ve modern klinik', 'Güncel cihazlar, hijyenik ameliyathane.'],
+        ] as [$i, $t, $d]): ?>
+          <div class="col-sm-6"><div class="feat"><span class="ic"><i class="bi bi-<?= $i ?>"></i></span><div><h4><?= $t ?></h4><p><?= $d ?></p></div></div></div>
+        <?php endforeach; ?>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<section class="section steps-sec">
+  <div class="container">
+    <div class="sec-head center"><div><span class="eyebrow">Nasıl çalışıyoruz?</span><h2>Üç adımda <em>kolay</em> veteriner deneyimi</h2></div></div>
+    <div class="row g-4">
       <?php foreach ([
-          ['heart-pulse', 'Uzman ve şefkatli ekip', 'Dostunuzun stresini azaltan, sabırlı ve deneyimli veteriner hekimler.'],
-          ['phone', 'Dijital sağlık karnesi', 'Tüm muayene, aşı ve tedavi geçmişine müşteri panelinden 7/24 ulaşın.'],
-          ['whatsapp', 'WhatsApp hatırlatmaları', 'Aşı ve randevu zamanı geldiğinde size otomatik mesaj gönderiyoruz.'],
-          ['shield-plus', 'Steril ve modern klinik', 'Güncel cihazlar, hijyenik ameliyathane ve laboratuvar altyapısı.'],
-          ['cash-coin', 'Şeffaf fiyatlandırma', 'Yapılan her işlem ve ödeme panelinizde anında görünür.'],
-          ['house-heart', 'Bakım & pet shop', 'Mama, aksesuar ve bakım ürünlerinde güvenilir seçenekler.'],
-      ] as [$i, $t, $d]): ?>
-        <div class="col-md-6"><div class="feature"><div class="ic"><i class="bi bi-<?= $i ?>"></i></div><div><h4><?= $t ?></h4><p><?= $d ?></p></div></div></div>
+          ['calendar-check', 'Randevunuzu alın', 'Online formdan, WhatsApp\'tan ya da telefonla size uygun saati seçin.'],
+          ['clipboard2-heart', 'Muayene & tedavi', 'Hekimimiz dostunuzu detaylıca inceler, tedavi ve aşı planını oluşturur.'],
+          ['bell', 'Biz takip edelim', 'Sonraki aşı ve kontrolleri biz hatırlatırız, siz sadece sevmeye devam edin.'],
+      ] as $n => [$i, $t, $d]): ?>
+        <div class="col-md-4"><div class="step-card"><span class="step-no"><?= $n + 1 ?></span><i class="bi bi-<?= $i ?>"></i><h3><?= $t ?></h3><p><?= $d ?></p></div></div>
+      <?php endforeach; ?>
+    </div>
+  </div>
+</section>
+
+<?php if ($vacc['Kedi'] || $vacc['Köpek']): ?>
+<section class="section vacc-sec" id="asi">
+  <div class="container">
+    <div class="sec-head">
+      <div><span class="eyebrow">Aşı Programı</span><h2>Temel <em>aşı takvimi</em></h2></div>
+      <p>Genel bilgilendirme amaçlıdır. Hekimimiz dostunuzun yaşına ve sağlık durumuna göre kişisel takvim oluşturur ve her aşıdan önce size hatırlatır.</p>
+    </div>
+    <ul class="nav vacc-tabs mb-3" role="tablist">
+      <?php $first = true; foreach (['Kedi' => '🐱', 'Köpek' => '🐶'] as $sp => $ic): if (!$vacc[$sp]) continue; ?>
+        <li class="nav-item"><button class="nav-link<?= $first ? ' active' : '' ?>" data-bs-toggle="tab" data-bs-target="#vac-<?= ($sp === 'Kedi' ? 'kedi' : 'kopek') ?>" type="button"><?= $ic ?> <?= $sp ?></button></li>
+      <?php $first = false; endforeach; ?>
+    </ul>
+    <div class="tab-content">
+      <?php $first = true; foreach (['Kedi', 'Köpek'] as $sp): if (!$vacc[$sp]) continue; ?>
+        <div class="tab-pane fade<?= $first ? ' show active' : '' ?>" id="vac-<?= ($sp === 'Kedi' ? 'kedi' : 'kopek') ?>">
+          <div class="vacc-grid">
+            <?php foreach ($vacc[$sp] as $v): ?>
+              <div class="vacc-item">
+                <div class="wk"><b><?= (int)$v['first_age_weeks'] ?>.</b><small>hafta</small></div>
+                <div class="flex-grow-1"><h4><?= e($v['name']) ?></h4>
+                  <p><?= (int)$v['doses'] > 1 ? (int)$v['doses'] . ' doz · ' . (int)$v['interval_days'] . ' gün arayla' : 'Tek doz' ?></p></div>
+                <?php if ($v['booster_days']): ?><span class="rep"><i class="bi bi-arrow-repeat"></i> <?= (int)$v['booster_days'] >= 365 ? 'Yılda bir' : 'Her ' . (int)$v['booster_days'] . ' gün' ?></span><?php endif; ?>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      <?php $first = false; endforeach; ?>
+    </div>
+  </div>
+</section>
+<?php endif; ?>
+
+<section class="section pt-0">
+  <div class="container"><div class="promo"><div class="row g-4 g-lg-5 align-items-center">
+    <div class="col-lg-6">
+      <span class="eyebrow light">Müşteri Paneli</span>
+      <h2>Dostunuzun sağlık karnesi <em>cebinizde</em></h2>
+      <ul class="checks">
+        <li><i class="bi bi-check2"></i> Yaklaşan ve yapılan aşıları görün</li>
+        <li><i class="bi bi-check2"></i> Muayene ve tedavi geçmişine ulaşın</li>
+        <li><i class="bi bi-check2"></i> Ödemelerinizi ve bakiyenizi takip edin</li>
+        <li><i class="bi bi-check2"></i> Panelden randevu talebi oluşturun</li>
+      </ul>
+      <a href="<?= url('panel/') ?>" class="btn btn-light btn-lg mt-2"><i class="bi bi-box-arrow-in-right"></i> Panele Giriş Yap</a>
+      <p class="small mt-3 opacity-75">Giriş bilgileriniz kliniğimiz tarafından WhatsApp ile iletilir.</p>
+    </div>
+    <div class="col-lg-6"><div class="phone">
+      <div class="phone-in">
+        <div class="ph-top"><b>Merhaba 👋</b><span class="chip ok">Bakiye: 0,00 ₺</span></div>
+        <div class="ph-row"><span class="av">🐱</span><div class="flex-grow-1"><b>Minnoş</b><small>Kedi · 1 yaş</small></div><span class="chip rose">Karma aşı · 3 gün</span></div>
+        <div class="ph-row"><span class="av sky">🐶</span><div class="flex-grow-1"><b>Karamel</b><small>Köpek · 2 yaş</small></div><span class="chip">Kontrol · 12 Ara</span></div>
+        <div class="ph-row"><span class="av mint"><i class="bi bi-receipt"></i></span><div class="flex-grow-1"><b>Son işlem</b><small>Genel muayene · İç parazit</small></div></div>
+        <div class="ph-btn"><i class="bi bi-calendar-plus"></i> Randevu talebi oluştur</div>
+      </div>
+    </div></div>
+  </div></div></div>
+</section>
+
+<section class="section faq-sec" id="sss">
+  <div class="container"><div class="row g-4 g-lg-5">
+    <div class="col-lg-4">
+      <span class="eyebrow">Sık Sorulanlar</span>
+      <h2>Aklınıza takılanlar</h2>
+      <p class="text-muted mt-3">Burada cevabını bulamadığınız her soru için bize WhatsApp'tan yazabilir veya arayabilirsiniz.</p>
+      <?php if ($wa): ?><a class="btn btn-wa mt-2" href="<?= e(wa_link($wa, 'Merhaba, bir sorum var.')) ?>" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> Soru sor</a><?php endif; ?>
+    </div>
+    <div class="col-lg-8"><div class="accordion faq" id="faq">
+      <?php foreach ($faqs as $n => [$q, $a]): ?>
+        <div class="accordion-item"><h3 class="accordion-header"><button class="accordion-button<?= $n ? ' collapsed' : '' ?>" type="button" data-bs-toggle="collapse" data-bs-target="#f<?= $n ?>"><?= e($q) ?></button></h3>
+          <div id="f<?= $n ?>" class="accordion-collapse collapse<?= $n ? '' : ' show' ?>" data-bs-parent="#faq"><div class="accordion-body"><?= e($a) ?></div></div></div>
       <?php endforeach; ?>
     </div></div>
   </div></div>
 </section>
 
-<section class="section" id="asi" style="background:var(--cream)">
-  <div class="container">
-    <div class="section-title"><div class="eyebrow">Aşı Takvimi</div><h2>Temel aşı programı</h2><p>Aşağıdaki program genel bilgilendirme amaçlıdır. Dostunuzun yaşına ve sağlık durumuna göre hekimimiz kişisel takvim oluşturur ve her aşıdan önce size hatırlatır.</p></div>
-    <div class="row g-4">
-      <?php foreach (['Kedi' => ['🐱', '#f59e0b'], 'Köpek' => ['🐶', '#0ea5e9']] as $sp => [$ic, $col]): if (!$vacc[$sp]) continue; ?>
-        <div class="col-lg-6"><div class="vacc-table"><div class="head" style="background:<?= $col ?>"><?= $ic ?> <?= $sp ?> Aşı Programı</div><ul>
-          <?php foreach ($vacc[$sp] as $v): ?>
-            <li><span class="fw-bold"><?= e($v['name']) ?></span><span><?= (int)$v['first_age_weeks'] ?>. haftadan itibaren<?= (int)$v['doses'] > 1 ? ', ' . (int)$v['doses'] . ' doz (' . (int)$v['interval_days'] . ' gün ara)' : '' ?><?= $v['booster_days'] ? '<br>Tekrar: ' . ((int)$v['booster_days'] >= 365 ? 'yılda bir' : 'her ' . (int)$v['booster_days'] . ' günde') : '' ?></span></li>
-          <?php endforeach; ?>
-        </ul></div></div>
-      <?php endforeach; ?>
-    </div>
-  </div>
-</section>
-
-<section class="section">
-  <div class="container"><div class="panel-promo"><div class="row g-5 align-items-center">
-    <div class="col-lg-6">
-      <div class="section-title text-start mb-3 mx-0"><div class="eyebrow">Müşteri Paneli</div><h2>Dostunuzun her şeyi cebinizde</h2></div>
-      <ul class="list-unstyled fs-6">
-        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Yaklaşan ve yapılan aşıları görün</li>
-        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Muayene ve tedavi geçmişine ulaşın</li>
-        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Ödemelerinizi ve kalan bakiyenizi takip edin</li>
-        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Panelden randevu talebi oluşturun</li>
-      </ul>
-      <a href="<?= url('panel/') ?>" class="btn btn-teal btn-lg mt-2"><i class="bi bi-box-arrow-in-right"></i> Panele Giriş Yap</a>
-      <p class="small text-muted mt-2">Giriş bilgileriniz kliniğimiz tarafından WhatsApp ile iletilir.</p>
-    </div>
-    <div class="col-lg-6"><div class="mock">
-      <div class="d-flex justify-content-between align-items-center mb-2"><b>Merhaba Ayşe 👋</b><span class="badge text-bg-success">Bakiye: 0,00 ₺</span></div>
-      <div class="row-i"><span style="font-size:2rem">🐱</span><div class="flex-grow-1"><b>Luna</b><div class="small text-muted">British Shorthair · 1 yaş</div></div><span class="badge rounded-pill" style="background:#fce7f3;color:#db2777">Karma aşı · 3 gün</span></div>
-      <div class="row-i"><span style="font-size:2rem">🐶</span><div class="flex-grow-1"><b>Max</b><div class="small text-muted">Golden Retriever · 2 yaş</div></div><span class="badge rounded-pill text-bg-light">Kontrol · 12 Ara</span></div>
-      <div class="row-i border-0"><i class="bi bi-receipt fs-4 text-primary"></i><div class="flex-grow-1"><b>Son işlem</b><div class="small text-muted">Genel muayene · İç parazit</div></div><b>1.000,00 ₺</b></div>
-    </div></div>
-  </div></div></div>
-</section>
-
 <?php if ($webAppt): ?>
-<section class="section pt-0" id="randevu">
-  <div class="container"><div class="row g-5 align-items-center">
-    <div class="col-lg-5">
-      <div class="section-title text-start mx-0 mb-3"><div class="eyebrow">Online Randevu</div><h2>Size en uygun zamanı seçin</h2><p>Formu doldurun, ekibimiz randevunuzu onaylamak için kısa süre içinde sizinle iletişime geçsin.</p></div>
-      <div class="contact-item"><div class="ic"><i class="bi bi-clock"></i></div><div><b>Çalışma Saatleri</b><div class="text-muted"><?= nl2br(e(setting('clinic_hours'))) ?></div></div></div>
-      <div class="contact-item"><div class="ic"><i class="bi bi-telephone"></i></div><div><b>Acil durumlar için</b><div><a href="tel:<?= e(preg_replace('/[^0-9+]/', '', setting('clinic_phone'))) ?>" class="fs-5 fw-bold"><?= e(setting('clinic_phone')) ?></a></div></div></div>
+<section class="section appt-sec" id="randevu">
+  <div class="container"><div class="appt-wrap"><div class="row g-0">
+    <div class="col-lg-5 appt-side">
+      <span class="eyebrow light">Online Randevu</span>
+      <h2>Size en uygun <em>zamanı</em> seçin</h2>
+      <p class="opacity-75">Formu doldurun, ekibimiz randevunuzu onaylamak için kısa süre içinde sizinle iletişime geçsin.</p>
+      <div class="side-item"><i class="bi bi-clock"></i><div><b>Çalışma Saatleri</b><span><?= nl2br(e(setting('clinic_hours'))) ?></span></div></div>
+      <?php if ($phone): ?><div class="side-item"><i class="bi bi-telephone"></i><div><b>Acil durumlar için</b><a href="tel:<?= e($tel) ?>"><?= e($phone) ?></a></div></div><?php endif; ?>
+      <img class="side-paw" src="<?= asset('img/favicon.svg') ?>" alt="">
     </div>
-    <div class="col-lg-7"><div class="appt-box">
+    <div class="col-lg-7 appt-form">
       <?php if ($sent): ?>
-        <div class="text-center py-4"><div style="font-size:4rem">🎉</div><h3>Talebiniz alındı!</h3><p class="text-muted">En kısa sürede onay için sizinle iletişime geçeceğiz. Teşekkür ederiz 🐾</p></div>
+        <div class="text-center py-5"><div class="done-ic"><i class="bi bi-check2"></i></div><h3>Talebiniz alındı!</h3><p class="text-muted">En kısa sürede onay için sizinle iletişime geçeceğiz. Teşekkür ederiz 🐾</p></div>
       <?php else: ?>
         <?php if ($formErr): ?><div class="alert alert-danger"><?= e($formErr) ?></div><?php endif; ?>
         <form method="post" action="#randevu" class="row g-3">
           <?= csrf_field() ?><input type="hidden" name="form" value="randevu">
           <input type="text" name="website" value="" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
-          <div class="col-md-6"><label class="form-label fw-bold">Adınız Soyadınız</label><input name="name" class="form-control" required value="<?= e(post('name')) ?>"></div>
-          <div class="col-md-6"><label class="form-label fw-bold">Cep Telefonu</label><input name="phone" type="tel" class="form-control" required placeholder="05xx xxx xx xx" value="<?= e(post('phone')) ?>"></div>
-          <div class="col-md-6"><label class="form-label fw-bold">Dostunuzun Türü</label><select name="pet_type" class="form-select"><?php foreach (species_list() as $s): ?><option><?= e($s['name']) ?></option><?php endforeach; ?></select></div>
-          <div class="col-md-6"><label class="form-label fw-bold">Dostunuzun Adı</label><input name="pet_name" class="form-control" value="<?= e(post('pet_name')) ?>"></div>
-          <div class="col-md-4"><label class="form-label fw-bold">Hizmet</label><select name="type" class="form-select"><?php foreach (appointment_types() as $t): ?><option><?= e($t) ?></option><?php endforeach; ?></select></div>
-          <div class="col-md-4"><label class="form-label fw-bold">Tarih</label><input type="date" name="date" class="form-control" min="<?= today() ?>" value="<?= e(post('date', date('Y-m-d', strtotime('+1 day')))) ?>" required></div>
-          <div class="col-md-4"><label class="form-label fw-bold">Saat</label><select name="time" class="form-select"><?php for ($h = 9; $h <= 19; $h++) foreach (['00', '30'] as $m): ?><option><?= sprintf('%02d:%s', $h, $m) ?></option><?php endforeach; ?></select></div>
-          <div class="col-12"><label class="form-label fw-bold">Notunuz</label><textarea name="note" class="form-control" rows="2" placeholder="Şikayet veya eklemek istedikleriniz"><?= e(post('note')) ?></textarea></div>
-          <div class="col-12"><div class="form-check"><input type="checkbox" class="form-check-input" name="kvkk" value="1" id="kvkk" required><label class="form-check-label small" for="kvkk">Kişisel verilerimin randevu ve bilgilendirme amacıyla işlenmesini ve WhatsApp üzerinden iletişime geçilmesini kabul ediyorum (KVKK).</label></div></div>
-          <div class="col-12"><button class="btn btn-coral btn-lg w-100"><i class="bi bi-calendar-check"></i> Randevu Talebi Gönder</button></div>
+          <div class="col-md-6"><label class="form-label">Adınız Soyadınız</label><input name="name" class="form-control" required value="<?= e(post('name')) ?>"></div>
+          <div class="col-md-6"><label class="form-label">Cep Telefonu</label><input name="phone" type="tel" class="form-control" required placeholder="05XXXXXXXXX" maxlength="16" value="<?= e(post('phone')) ?>"></div>
+          <div class="col-md-6"><label class="form-label">Dostunuzun Türü</label><select name="pet_type" class="form-select"><?php foreach (species_list() as $s): ?><option><?= e($s['name']) ?></option><?php endforeach; ?></select></div>
+          <div class="col-md-6"><label class="form-label">Dostunuzun Adı</label><input name="pet_name" class="form-control" value="<?= e(post('pet_name')) ?>"></div>
+          <div class="col-md-4"><label class="form-label">Hizmet</label><select name="type" class="form-select"><?php foreach (appointment_types() as $t): ?><option><?= e($t) ?></option><?php endforeach; ?></select></div>
+          <div class="col-md-4"><label class="form-label">Tarih</label><input type="date" name="date" class="form-control" min="<?= today() ?>" value="<?= e(post('date', date('Y-m-d', strtotime('+1 day')))) ?>" required></div>
+          <div class="col-md-4"><label class="form-label">Saat</label><select name="time" class="form-select"><?php for ($h = 9; $h <= 19; $h++) foreach (['00', '30'] as $m): ?><option><?= sprintf('%02d:%s', $h, $m) ?></option><?php endforeach; ?></select></div>
+          <div class="col-12"><label class="form-label">Notunuz</label><textarea name="note" class="form-control" rows="2" placeholder="Şikayet veya eklemek istedikleriniz"><?= e(post('note')) ?></textarea></div>
+          <div class="col-12"><div class="form-check"><input type="checkbox" class="form-check-input" name="kvkk" value="1" id="kvkk" required><label class="form-check-label small text-muted" for="kvkk">Kişisel verilerimin randevu ve bilgilendirme amacıyla işlenmesini ve WhatsApp üzerinden iletişime geçilmesini kabul ediyorum (KVKK).</label></div></div>
+          <div class="col-12"><button class="btn btn-brand btn-lg w-100"><i class="bi bi-calendar-check"></i> Randevu Talebi Gönder</button></div>
         </form>
       <?php endif; ?>
-    </div></div>
-  </div></div>
+    </div>
+  </div></div></div>
 </section>
 <?php endif; ?>
 
-<section class="section" id="iletisim" style="background:var(--cream)">
-  <div class="container"><div class="row g-5">
+<section class="section contact-sec" id="iletisim">
+  <div class="container"><div class="row g-4">
     <div class="col-lg-5">
-      <div class="section-title text-start mx-0 mb-4"><div class="eyebrow">İletişim</div><h2>Bize ulaşın</h2></div>
-      <div class="contact-item"><div class="ic"><i class="bi bi-geo-alt"></i></div><div><b>Adres</b><div class="text-muted"><?= nl2br(e(setting('clinic_address'))) ?></div></div></div>
-      <div class="contact-item"><div class="ic"><i class="bi bi-telephone"></i></div><div><b>Telefon</b><div><a href="tel:<?= e(preg_replace('/[^0-9+]/', '', setting('clinic_phone'))) ?>"><?= e(setting('clinic_phone')) ?></a></div></div></div>
-      <?php if ($wa): ?><div class="contact-item"><div class="ic"><i class="bi bi-whatsapp"></i></div><div><b>WhatsApp</b><div><a href="<?= e(wa_link($wa)) ?>" target="_blank" rel="noopener"><?= e(phone_fmt($wa)) ?></a></div></div></div><?php endif; ?>
-      <div class="contact-item"><div class="ic"><i class="bi bi-envelope"></i></div><div><b>E-posta</b><div><a href="mailto:<?= e(setting('clinic_email')) ?>"><?= e(setting('clinic_email')) ?></a></div></div></div>
-      <?php if ($ig = setting('clinic_instagram')): ?><div class="contact-item"><div class="ic"><i class="bi bi-instagram"></i></div><div><b>Instagram</b><div><a href="https://instagram.com/<?= e(ltrim($ig, '@')) ?>" target="_blank" rel="noopener">@<?= e(ltrim($ig, '@')) ?></a></div></div></div><?php endif; ?>
+      <span class="eyebrow">İletişim</span>
+      <h2 class="mb-4">Bize <em>ulaşın</em></h2>
+      <div class="c-list">
+        <div class="c-item"><span class="ic"><i class="bi bi-geo-alt"></i></span><div><b>Adres</b><span><?= nl2br(e(setting('clinic_address'))) ?></span></div></div>
+        <?php if ($phone): ?><div class="c-item"><span class="ic"><i class="bi bi-telephone"></i></span><div><b>Telefon</b><a href="tel:<?= e($tel) ?>"><?= e($phone) ?></a></div></div><?php endif; ?>
+        <?php if ($wa): ?><div class="c-item"><span class="ic wa"><i class="bi bi-whatsapp"></i></span><div><b>WhatsApp</b><a href="<?= e(wa_link($wa)) ?>" target="_blank" rel="noopener"><?= e(phone_fmt($wa)) ?></a></div></div><?php endif; ?>
+        <?php if ($em = setting('clinic_email')): ?><div class="c-item"><span class="ic"><i class="bi bi-envelope"></i></span><div><b>E-posta</b><a href="mailto:<?= e($em) ?>"><?= e($em) ?></a></div></div><?php endif; ?>
+        <?php if ($ig = setting('clinic_instagram')): ?><div class="c-item"><span class="ic ig"><i class="bi bi-instagram"></i></span><div><b>Instagram</b><a href="https://instagram.com/<?= e(ltrim($ig, '@')) ?>" target="_blank" rel="noopener">@<?= e(ltrim($ig, '@')) ?></a></div></div><?php endif; ?>
+      </div>
     </div>
     <div class="col-lg-7"><div class="map">
       <?php if ($map && str_starts_with($map, 'https://www.google.com/maps/embed')): ?><iframe src="<?= e($map) ?>" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Harita"></iframe>
-      <?php else: ?><div class="d-grid h-100 text-center text-muted p-5" style="place-items:center;min-height:320px"><div><i class="bi bi-map fs-1"></i><div>Harita, yönetim panelinde Ayarlar &gt; Klinik bölümünden eklenebilir.</div></div></div><?php endif; ?>
+      <?php else: ?><div class="map-empty"><i class="bi bi-map"></i><div>Harita, yönetim panelinde Ayarlar &gt; Genel bölümünden eklenebilir.</div></div><?php endif; ?>
     </div></div>
   </div></div>
 </section>
 
 <footer class="site-foot">
   <div class="container">
-    <div class="row g-4">
-      <div class="col-md-5"><a class="brand mb-2" href="#"><img src="<?= asset('img/favicon.svg') ?>" alt="" style="filter:brightness(0) invert(1)"> patikum</a><p class="small"><?= e(setting('clinic_slogan')) ?></p></div>
-      <div class="col-6 col-md-3"><b class="text-white">Hızlı Erişim</b><ul class="list-unstyled small mt-2"><li><a href="#hizmetler">Hizmetler</a></li><li><a href="#asi">Aşı Takvimi</a></li><li><a href="#randevu">Randevu</a></li><li><a href="<?= url('panel/') ?>">Müşteri Paneli</a></li></ul></div>
-      <div class="col-6 col-md-4"><b class="text-white">Çalışma Saatleri</b><p class="small mt-2"><?= nl2br(e(setting('clinic_hours'))) ?></p></div>
+    <div class="foot-cta">
+      <div><h3>Dostunuzun sağlığı için bugün randevu alın.</h3><p>Sorularınız için WhatsApp hattımız her zaman açık.</p></div>
+      <div class="d-flex gap-2 flex-wrap"><?php if ($webAppt): ?><a href="#randevu" class="btn btn-brand btn-lg">Randevu Al</a><?php endif; ?><?php if ($wa): ?><a href="<?= e(wa_link($wa)) ?>" class="btn btn-outline-light btn-lg" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> WhatsApp</a><?php endif; ?></div>
     </div>
-    <hr class="border-secondary">
-    <div class="d-flex justify-content-between small flex-wrap gap-2"><span>© <?= date('Y') ?> <?= e($name) ?>. Tüm hakları saklıdır.</span><a href="<?= url('admin/') ?>" class="opacity-50">Personel Girişi</a></div>
+    <div class="row g-4">
+      <div class="col-md-5"><a class="brand light mb-3" href="#top"><span class="brand-mark"><img src="<?= asset('img/favicon.svg') ?>" alt=""></span><span>patikum<small>veteriner kliniği</small></span></a><p class="small"><?= e(setting('clinic_slogan')) ?></p></div>
+      <div class="col-6 col-md-3"><b>Hızlı Erişim</b><ul class="list-unstyled small mt-2 d-grid gap-1"><li><a href="#hizmetler">Hizmetler</a></li><li><a href="#asi">Aşı Programı</a></li><li><a href="#randevu">Randevu</a></li><li><a href="<?= url('panel/') ?>">Müşteri Paneli</a></li></ul></div>
+      <div class="col-6 col-md-4"><b>Çalışma Saatleri</b><p class="small mt-2"><?= nl2br(e(setting('clinic_hours'))) ?></p></div>
+    </div>
+    <div class="foot-bottom"><span>© <?= date('Y') ?> <?= e($name) ?>. Tüm hakları saklıdır.</span><a href="<?= url('admin/') ?>">Personel Girişi</a></div>
   </div>
 </footer>
 <?php if ($wa): ?><a class="wa-float" href="<?= e(wa_link($wa, 'Merhaba, bilgi almak istiyorum.')) ?>" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a><?php endif; ?>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.querySelectorAll('.site-nav .nav-link, .site-nav .btn').forEach(a => a.addEventListener('click', () => { const c = document.getElementById('nv'); if (c.classList.contains('show')) bootstrap.Collapse.getOrCreateInstance(c).hide(); }));
+const nav = document.querySelector('.site-nav'); const onS = () => nav.classList.toggle('scrolled', window.scrollY > 30); onS(); window.addEventListener('scroll', onS, { passive: true });
+</script>
 </body>
 </html>

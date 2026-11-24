@@ -6,7 +6,7 @@ $active = 'diger';
 $tab = get('sekme', 'genel');
 
 $fields = [
-    'genel' => ['clinic_name', 'clinic_slogan', 'clinic_phone', 'clinic_whatsapp', 'clinic_email', 'clinic_address', 'clinic_hours', 'clinic_instagram', 'clinic_facebook', 'clinic_map', 'site_url', 'appointment_types', 'product_categories', 'expense_categories', 'service_vat', 'web_appointments'],
+    'genel' => ['clinic_name', 'clinic_slogan', 'clinic_phone', 'clinic_whatsapp', 'clinic_email', 'clinic_address', 'clinic_hours', 'clinic_instagram', 'clinic_facebook', 'clinic_map', 'site_hero_image', 'site_about', 'site_url', 'appointment_types', 'product_categories', 'expense_categories', 'service_vat', 'web_appointments'],
     'whatsapp' => ['wa_driver', 'wa_send_instant', 'wa_cloud_token', 'wa_cloud_phone_id', 'wa_cloud_version', 'wa_cloud_lang', 'wa_api_url', 'wa_api_token', 'wa_api_auth_header', 'wa_api_auth_prefix', 'wa_api_phone_field', 'wa_api_message_field', 'wa_api_extra'],
     'efatura' => ['einv_provider', 'einv_title', 'einv_vkn', 'einv_tax_office', 'einv_address', 'einv_city', 'einv_district', 'einv_prefix', 'einv_api_url', 'einv_api_user', 'einv_api_pass'],
 ];
@@ -78,6 +78,9 @@ include APP . '/views/admin_header.php'; ?>
       <div class="col-md-6"><?= fld('clinic_address', 'Adres', 'textarea') ?></div><div class="col-md-6"><?= fld('clinic_hours', 'Çalışma Saatleri', 'textarea') ?></div>
       <div class="col-md-6"><?= fld('clinic_instagram', 'Instagram kullanıcı adı') ?></div><div class="col-md-6"><?= fld('clinic_facebook', 'Facebook sayfa adresi') ?></div>
       <div class="col-12"><?= fld('clinic_map', 'Google Harita Embed URL', 'text', 'Google Maps &gt; Paylaş &gt; Harita yerleştir &gt; iframe içindeki src adresi') ?></div>
+      <div class="col-12"><h6 class="fw-bold mt-2"><i class="bi bi-window me-1"></i>Web Sitesi Görünümü</h6></div>
+      <div class="col-md-6"><?= fld('site_hero_image', 'Ana sayfa fotoğrafı (adres)', 'url', 'Kliniğinizin veya bir hastanızın fotoğrafının bağlantısı (https://…jpg). Boş bırakılırsa çizim gösterilir.') ?></div>
+      <div class="col-md-6"><?= fld('site_about', 'Hakkımızda yazısı', 'textarea', 'Ana sayfadaki "Hakkımızda" bölümünde görünür.') ?></div>
       <div class="col-md-6"><?= fld('site_url', 'Site Adresi', 'url', 'WhatsApp mesajlarındaki panel linki için. Örn: https://patikum.com') ?></div><div class="col-md-6"><?= fld('service_vat', 'Muayene/hizmet KDV oranı (%)', 'number') ?></div>
       <div class="col-12"><?= fld('web_appointments', 'Web sitesinden online randevu talebi alınsın', 'switch') ?></div>
       <div class="col-12"><?= fld('appointment_types', 'Randevu Türleri', 'text', 'Virgülle ayırın') ?></div>

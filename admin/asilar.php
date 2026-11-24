@@ -95,7 +95,7 @@ $tpl = wa_template('asi_hatirlatma');
 
 include APP . '/views/admin_header.php'; ?>
 <div class="page-head"><div><h1>Aşı Takvimi</h1><div class="sub">Planlanan, geciken ve yapılan aşılar</div></div>
-  <a href="<?= url('admin/asi-sihirbazi.php') ?>" class="btn btn-primary"><i class="bi bi-magic"></i> Otomatik Aşı Sihirbazı</a></div>
+  <div class="d-flex gap-2 flex-wrap"><?php if (is_admin()): ?><a href="<?= url('admin/aktar.php?tur=asi') ?>" class="btn btn-outline-primary text-nowrap"><i class="bi bi-file-earmark-excel"></i> Excel'den Yükle</a><?php endif; ?><a href="<?= url('admin/asi-sihirbazi.php') ?>" class="btn btn-primary"><i class="bi bi-magic"></i> Otomatik Aşı Sihirbazı</a></div></div>
 <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
   <ul class="nav nav-pills">
     <li class="nav-item"><a class="nav-link <?= $tab === 'bugun' ? 'active' : '' ?>" href="?sekme=bugun">Bugün <span class="badge text-bg-light"><?= $cnt['bugun'] ?></span></a></li>

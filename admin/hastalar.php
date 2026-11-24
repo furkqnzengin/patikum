@@ -91,6 +91,7 @@ include APP . '/views/admin_header.php'; ?>
   <div class="d-flex gap-2">
     <form class="d-flex gap-2"><input type="hidden" name="tur" value="<?= $sp ?>"><input name="q" class="form-control" placeholder="Ad, çip no, sahip, ırk…" value="<?= e($qs) ?>">
       <select name="durum" class="form-select" style="width:auto"><?= options(['aktif' => 'Aktif', 'vefat' => 'Vefat', 'kayip' => 'Kayıp', '' => 'Tümü'], $st) ?></select><button class="btn btn-light"><i class="bi bi-search"></i></button></form>
+    <?php if (is_admin()): ?><a href="<?= url('admin/aktar.php?tur=hasta') ?>" class="btn btn-outline-primary text-nowrap"><i class="bi bi-file-earmark-excel"></i> Excel'den Yükle</a><?php endif; ?>
     <a href="<?= url('admin/hastalar.php?islem=yeni') ?>" class="btn btn-primary text-nowrap"><i class="bi bi-plus-lg"></i> Yeni Hasta</a>
   </div>
 </div>

@@ -57,12 +57,15 @@
   };
 
   // Mini çizgi grafik
-  window.ptSpark = function (id, data) {
+  window.ptSpark = function (id, data, color) {
     const c = document.getElementById(id);
     if (!c || !window.Chart) return;
+    color = color || '#1d7a64';
+    const g = c.getContext('2d').createLinearGradient(0, 0, 0, 64);
+    g.addColorStop(0, color + '40'); g.addColorStop(1, color + '00');
     new Chart(c, {
       type: 'line',
-      data: { labels: data.map((_, i) => i), datasets: [{ data, borderColor: 'rgba(255,255,255,.95)', backgroundColor: 'rgba(255,255,255,.18)', fill: true, tension: .4, pointRadius: 0, borderWidth: 2 }] },
+      data: { labels: data.map((_, i) => i), datasets: [{ data, borderColor: color, backgroundColor: g, fill: true, tension: .42, pointRadius: 0, borderWidth: 2 }] },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false, beginAtZero: true } } }
     });
   };
@@ -76,6 +79,51 @@
       document.querySelectorAll(box.dataset.tabs).forEach(p => p.classList.add('d-none'));
       document.querySelector(t.dataset.target).classList.remove('d-none');
     }));
+  });
+
+  // Kenar menü: grup aç/kapa, mobil aç/kapa, daralt
+  const html = document.documentElement;
+  document.querySelectorAll('[data-pt-group]').forEach(b => b.addEventListener('click', () => {
+    if (html.classList.contains('side-mini') && window.innerWidth >= 992) return;
+    b.parentElement.classList.toggle('open');
+  }));
+  document.querySelectorAll('[data-pt-side]').forEach(b => b.addEventListener('click', () => {
+    const a = b.dataset.ptSide;
+    if (a === 'open') html.classList.add('side-open');
+    else if (a === 'close') html.classList.remove('side-open');
+    else if (a === 'mini') { html.classList.toggle('side-mini'); try { localStorage.setItem('pt_side_mini', html.classList.contains('side-mini') ? '1' : '0'); } catch (e) {} }
+  }));
+
+  // Bakiyeleri gizle / göster (tercih tarayıcıda hatırlanır)
+  document.querySelectorAll('.js-money-toggle').forEach(b => b.addEventListener('click', () => {
+    const on = html.classList.toggle('money-hidden');
+    try { localStorage.setItem('pt_money_hidden', on ? '1' : '0'); } catch (e) {}
+  }));
+
+  // "/" ile aramaya odaklan
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) {
+      const i = document.querySelector('.pt-search input'); if (i) { e.preventDefault(); i.focus(); }
+    }
+  });
+
+  // Telefon alanları: yalnızca rakam, 11 hane (05XXXXXXXXX)
+  document.querySelectorAll('input.js-phone').forEach(inp => {
+    const fix = () => {
+      let v = inp.value.trim();
+      if (v.startsWith('+') && !v.replace(/\D/g, '').startsWith('90')) { inp.value = '+' + v.replace(/\D/g, ''); return; }
+      let d = v.replace(/\D/g, '');
+      if (d.startsWith('90') && d.length === 12) d = d.slice(2);
+      if (d.length === 10 && d[0] !== '0') d = '0' + d;
+      inp.value = d.slice(0, 11);
+    };
+    inp.addEventListener('blur', fix);
+    inp.addEventListener('input', () => { if (!inp.value.startsWith('+')) inp.value = inp.value.replace(/[^\d]/g, '').slice(0, 12); });
+    const f = inp.form;
+    if (f) f.addEventListener('submit', (e) => {
+      fix();
+      if (inp.value && !inp.value.startsWith('+') && inp.value.length !== 11) { e.preventDefault(); inp.classList.add('is-invalid'); inp.focus(); alert('Telefon numarası 11 haneli olmalıdır (ör. 05321234567).'); }
+    });
   });
 
   // Tarih alanı kısayolları

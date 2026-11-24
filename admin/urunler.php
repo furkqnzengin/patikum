@@ -69,7 +69,7 @@ $dbCats = array_column(rows('SELECT DISTINCT category FROM products WHERE catego
 
 include APP . '/views/admin_header.php'; ?>
 <div class="page-head"><div><h1>Ürünler & Hizmetler</h1><div class="sub"><?= $pg['total'] ?> kayıt · Stok değeri (alış): <b><?= money($value) ?></b></div></div>
-  <div class="d-flex gap-2"><a class="btn btn-outline-primary" href="<?= url('admin/stok.php') ?>"><i class="bi bi-arrow-left-right"></i> Stok Girişi</a><a class="btn btn-primary" href="?islem=yeni"><i class="bi bi-plus-lg"></i> Yeni Ürün</a></div></div>
+  <div class="d-flex gap-2"><a class="btn btn-outline-primary" href="<?= url('admin/stok.php') ?>"><i class="bi bi-arrow-left-right"></i> Stok Girişi</a><?php if (is_admin()): ?><a href="<?= url('admin/aktar.php?tur=urun') ?>" class="btn btn-outline-primary text-nowrap"><i class="bi bi-file-earmark-excel"></i> Excel'den Yükle</a><?php endif; ?><a class="btn btn-primary" href="?islem=yeni"><i class="bi bi-plus-lg"></i> Yeni Ürün</a></div></div>
 <form class="card mb-3"><div class="card-body row g-2 align-items-center">
   <div class="col-md-4"><input name="q" class="form-control" placeholder="Ürün adı veya barkod…" value="<?= e($qs) ?>" autofocus></div>
   <div class="col-md-3"><select name="kategori" class="form-select"><option value="">Tüm kategoriler</option><?php foreach ($dbCats as $c): ?><option <?= $c === $cat ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?></select></div>

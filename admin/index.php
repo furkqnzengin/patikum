@@ -61,7 +61,7 @@ function vacc_rows(array $list, string $emptyText): void
             <div class="small text-muted text-truncate"><?= e($v['sahip']) ?></div>
           </div>
           <div class="flex-grow-1" style="min-width:0">
-            <div class="fw-bold small text-uppercase" style="color:#db2777"><?= e($v['asi']) ?> <span class="text-muted fw-normal">· <?= e($v['dose_label']) ?></span></div>
+            <div class="vac-name"><?= e($v['asi']) ?><?php if ($v['dose_label']): ?> <span class="text-muted fw-normal text-capitalize">· <?= e($v['dose_label']) ?></span><?php endif; ?></div>
             <div class="small <?= $late ? 'text-danger fw-bold' : '' ?>"><?= dt_long($v['due_date']) ?></div>
           </div>
           <div class="d-flex gap-1">
@@ -96,7 +96,7 @@ function appt_rows(array $list, string $emptyText): void
             <div class="fw-bold" style="font-size:1.05rem"><?= tm($a['start_at']) ?></div>
             <div class="small text-muted"><?= date('d.m', strtotime($a['start_at'])) ?></div>
           </div>
-          <div class="pet-avatar" style="background:#e0f2fe"><?= species_icon($a['icon'] ?? null) ?></div>
+          <div class="pet-avatar" style="background:#e6f1fb"><?= species_icon($a['icon'] ?? null) ?></div>
           <div class="flex-grow-1" style="min-width:0">
             <div class="fw-bold"><?= e($a['hasta'] ?: ($a['pet_info'] ?: '—')) ?> <span class="badge badge-soft"><?= e($a['type']) ?></span></div>
             <div class="small text-muted text-truncate"><?= e($name) ?></div>
@@ -108,55 +108,67 @@ function appt_rows(array $list, string $emptyText): void
     }
 }
 
+$vTodayCount = count($vToday);
+$aTodayCount = count($aToday);
+$hour = (int)date('G');
+$greet = $hour < 6 ? 'İyi geceler' : ($hour < 12 ? 'Günaydın' : ($hour < 18 ? 'İyi günler' : 'İyi akşamlar'));
+
 include APP . '/views/admin_header.php';
 ?>
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 my-3">
-  <div class="welcome">
-    <div class="logo-circle">🐾</div>
+<section class="dash-hero">
+  <img class="paw-deco" src="<?= asset('img/favicon.svg') ?>" alt="">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 position-relative" style="z-index:1">
     <div>
-      <p>Merhaba <?= e(explode(' ', $u['name'])[0]) ?>, iyi çalışmalar!</p>
-      <h1><?= e(mb_strtoupper(setting('clinic_name', 'Patikum Veteriner Kliniği'), 'UTF-8')) ?></h1>
+      <p class="hello"><?= $greet ?>, <?= e(explode(' ', $u['name'])[0]) ?> 👋</p>
+      <h1><?= e(setting('clinic_name', 'Patikum Veteriner Kliniği')) ?></h1>
+      <span class="date"><i class="bi bi-calendar3"></i> <?= date('j') . ' ' . tr_month((int)date('n')) . ' ' . date('Y') . ', ' . tr_day((int)date('w')) ?></span>
+      <span class="date ms-1"><i class="bi bi-eyedropper"></i> Bugün <?= $vTodayCount ?> aşı · <?= $aTodayCount ?> randevu</span>
     </div>
+    <button type="button" class="money-toggle-lg js-money-toggle" title="Tutarları ekranda gizle / göster">
+      <span class="on"><i class="bi bi-eye-slash"></i> Bakiyeleri gizle</span>
+      <span class="off"><i class="bi bi-eye"></i> Bakiyeleri göster</span>
+    </button>
   </div>
-  <div class="d-flex gap-2 flex-wrap">
-    <span class="kpi py-2"><span class="ic grad-green" style="width:38px;height:38px;font-size:1.1rem"><i class="bi bi-cash-stack"></i></span><span><span class="l d-block">Bugünkü tahsilat</span><span class="v" style="font-size:1.05rem"><?= money($todayIn) ?></span></span></span>
-    <a href="<?= url('admin/muhasebe.php?sekme=cari') ?>" class="kpi py-2 text-reset"><span class="ic grad-pink" style="width:38px;height:38px;font-size:1.1rem"><i class="bi bi-journal-minus"></i></span><span><span class="l d-block">Toplam alacak</span><span class="v" style="font-size:1.05rem"><?= money($receivable) ?></span></span></a>
+  <div class="hero-stats mt-3">
+    <a class="hs" href="<?= url('admin/muhasebe.php?sekme=tahsilat') ?>"><span class="l"><i class="bi bi-cash-stack"></i> Bugünkü tahsilat</span><span class="v money"><?= money($todayIn) ?></span></a>
+    <a class="hs" href="<?= url('admin/muhasebe.php?sekme=cari') ?>"><span class="l"><i class="bi bi-journal-minus"></i> Toplam alacak</span><span class="v money"><?= money($receivable) ?></span></a>
+    <a class="hs" href="<?= url('admin/satislar.php') ?>"><span class="l"><i class="bi bi-graph-up-arrow"></i> <?= tr_month((int)date('n')) ?> cirosu</span><span class="v money"><?= money($monthSales) ?></span></a>
   </div>
-</div>
+</section>
 
 <div class="row g-3">
   <div class="col-md-4 col-xl-3">
-    <a href="<?= url('admin/musteriler.php') ?>" class="stat-card grad-teal d-block">
-      <div class="head">Müşteriler <i class="bi bi-people fs-5"></i></div>
+    <a href="<?= url('admin/musteriler.php') ?>" class="stat-card">
+      <div class="head">Müşteriler <span class="ic grad-teal"><i class="bi bi-people"></i></span></div>
       <div class="value"><?= number_format($custCount, 0, ',', '.') ?></div>
-      <div class="label">Kayıtlı müşteri · son 30 gün +<?= array_sum($custSeries) ?></div>
+      <div class="label">Kayıtlı müşteri · son 30 gün <b>+<?= array_sum($custSeries) ?></b></div>
       <canvas id="spCust"></canvas>
     </a>
   </div>
   <div class="col-md-4 col-xl-3">
-    <a href="<?= url('admin/hastalar.php') ?>" class="stat-card grad-purple d-block">
-      <div class="head">Hastalar <i class="bi bi-heart-pulse fs-5"></i></div>
+    <a href="<?= url('admin/hastalar.php') ?>" class="stat-card">
+      <div class="head">Hastalar <span class="ic grad-purple"><i class="bi bi-heart-pulse"></i></span></div>
       <div class="value"><?= number_format($patCount, 0, ',', '.') ?></div>
-      <div class="label">Aktif hasta · son 30 gün +<?= array_sum($patSeries) ?></div>
+      <div class="label">Aktif hasta · son 30 gün <b>+<?= array_sum($patSeries) ?></b></div>
       <canvas id="spPat"></canvas>
     </a>
   </div>
   <div class="col-md-4 col-xl-3">
-    <a href="<?= url('admin/satislar.php') ?>" class="stat-card grad-orange d-block">
-      <div class="head">Bu Ay Satış <i class="bi bi-graph-up-arrow fs-5"></i></div>
-      <div class="value"><?= money($monthSales) ?></div>
-      <div class="label"><?= tr_month((int)date('n')) ?> <?= date('Y') ?> cirosu</div>
-      <canvas id="spSale"></canvas>
+    <a href="<?= url('admin/satislar.php') ?>" class="stat-card">
+      <div class="head">Bu Ay Satış <span class="ic grad-orange"><i class="bi bi-bag-check"></i></span></div>
+      <div class="value money"><?= money($monthSales) ?></div>
+      <div class="label"><?= tr_month((int)date('n')) ?> <?= date('Y') ?> · son 30 gün</div>
+      <canvas id="spSale" class="money"></canvas>
     </a>
   </div>
   <div class="col-xl-3">
     <div class="quick-grid">
-      <a class="quick-btn" href="<?= url('admin/musteriler.php?islem=yeni') ?>"><i class="bi bi-person-plus grad-teal"></i>Hızlı Müşteri</a>
-      <a class="quick-btn" href="<?= url('admin/hastalar.php?islem=yeni') ?>"><i class="bi bi-heart-pulse grad-purple"></i>Hızlı Hasta</a>
+      <a class="quick-btn" href="<?= url('admin/musteriler.php?islem=yeni') ?>"><i class="bi bi-person-plus grad-teal"></i>Müşteri</a>
+      <a class="quick-btn" href="<?= url('admin/hastalar.php?islem=yeni') ?>"><i class="bi bi-heart-pulse grad-purple"></i>Hasta</a>
       <a class="quick-btn" href="<?= url('admin/asi-sihirbazi.php') ?>"><i class="bi bi-magic grad-pink"></i>Aşı Sihirbazı</a>
-      <a class="quick-btn" href="<?= url('admin/randevular.php?islem=yeni') ?>"><i class="bi bi-calendar-plus grad-blue"></i>Hızlı Randevu</a>
-      <a class="quick-btn" href="<?= url('admin/satis.php') ?>"><i class="bi bi-cart-plus grad-orange"></i>Hızlı Satış</a>
-      <a class="quick-btn" href="<?= url('admin/muhasebe.php?sekme=tahsilat&yeni=1') ?>"><i class="bi bi-cash-coin grad-green"></i>Hızlı Tahsilat</a>
+      <a class="quick-btn" href="<?= url('admin/randevular.php?islem=yeni') ?>"><i class="bi bi-calendar-plus grad-blue"></i>Randevu</a>
+      <a class="quick-btn" href="<?= url('admin/satis.php') ?>"><i class="bi bi-cart-plus grad-orange"></i>Satış</a>
+      <a class="quick-btn" href="<?= url('admin/muhasebe.php?sekme=tahsilat&yeni=1') ?>"><i class="bi bi-cash-coin grad-green"></i>Tahsilat</a>
     </div>
   </div>
 </div>
@@ -164,14 +176,14 @@ include APP . '/views/admin_header.php';
 <div class="row g-3 mt-1">
   <div class="col-lg-6">
     <div class="card h-100">
-      <div class="panel-tabs grad-pink" data-tabs=".vpanel">
-        <span class="title"><i class="bi bi-eyedropper me-1"></i>Aşılar</span>
-        <span class="tab active" data-target="#vToday">Bugün <span class="badge text-bg-light ms-1"><?= count($vToday) ?></span></span>
+      <div class="panel-tabs" data-tabs=".vpanel">
+        <span class="title"><span class="ic grad-pink"><i class="bi bi-eyedropper"></i></span>Aşılar</span>
+        <span class="tab active" data-target="#vToday">Bugün <span class="badge text-bg-light ms-1"><?= $vTodayCount ?></span></span>
         <span class="tab" data-target="#vSoon">Yaklaşan</span>
         <span class="tab" data-target="#vLate">Geciken <?php if ($vLate): ?><span class="badge text-bg-danger ms-1"><?= count($vLate) ?></span><?php endif; ?></span>
         <a class="add" href="<?= url('admin/asi-sihirbazi.php') ?>"><i class="bi bi-plus-lg"></i> Yeni Aşı</a>
       </div>
-      <div class="card-body pt-1" style="max-height:420px;overflow:auto">
+      <div class="card-body pt-1" style="max-height:430px;overflow:auto">
         <div id="vToday" class="vpanel"><?php vacc_rows($vToday, 'Bugün planlanmış aşı yok.'); ?></div>
         <div id="vSoon" class="vpanel d-none"><?php vacc_rows($vSoon, 'Önümüzdeki 7 gün için aşı yok.'); ?></div>
         <div id="vLate" class="vpanel d-none"><?php vacc_rows($vLate, 'Geciken aşı yok, harika!'); ?></div>
@@ -180,14 +192,14 @@ include APP . '/views/admin_header.php';
   </div>
   <div class="col-lg-6">
     <div class="card h-100">
-      <div class="panel-tabs grad-blue" data-tabs=".apanel">
-        <span class="title"><i class="bi bi-calendar-heart me-1"></i>Randevular</span>
-        <span class="tab active" data-target="#aToday">Bugün <span class="badge text-bg-light ms-1"><?= count($aToday) ?></span></span>
+      <div class="panel-tabs" data-tabs=".apanel">
+        <span class="title"><span class="ic grad-blue"><i class="bi bi-calendar-heart"></i></span>Randevular</span>
+        <span class="tab active" data-target="#aToday">Bugün <span class="badge text-bg-light ms-1"><?= $aTodayCount ?></span></span>
         <span class="tab" data-target="#aSoon">Yaklaşan</span>
         <span class="tab" data-target="#aLate">Geciken <?php if ($aLate): ?><span class="badge text-bg-danger ms-1"><?= count($aLate) ?></span><?php endif; ?></span>
         <a class="add" href="<?= url('admin/randevular.php?islem=yeni') ?>"><i class="bi bi-plus-lg"></i> Yeni Randevu</a>
       </div>
-      <div class="card-body pt-1" style="max-height:420px;overflow:auto">
+      <div class="card-body pt-1" style="max-height:430px;overflow:auto">
         <div id="aToday" class="apanel"><?php appt_rows($aToday, 'Bugün için randevu yok. Oluşturmak için tıklayın.'); ?></div>
         <div id="aSoon" class="apanel d-none"><?php appt_rows($aSoon, 'Yaklaşan randevu yok.'); ?></div>
         <div id="aLate" class="apanel d-none"><?php appt_rows($aLate, 'Sonuçlandırılmamış geçmiş randevu yok.'); ?></div>
@@ -197,10 +209,10 @@ include APP . '/views/admin_header.php';
 </div>
 
 <div class="row g-3 mt-1">
-  <div class="col-lg-6">
+  <div class="col-lg-7">
     <div class="card h-100">
-      <div class="panel-tabs grad-green" data-tabs=".mpanel">
-        <span class="title"><i class="bi bi-wallet2 me-1"></i>Muhasebe</span>
+      <div class="panel-tabs" data-tabs=".mpanel">
+        <span class="title"><span class="ic grad-green"><i class="bi bi-wallet2"></i></span>Muhasebe</span>
         <span class="tab active" data-target="#mPay">Son Tahsilatlar</span>
         <span class="tab" data-target="#mSale">Son Satışlar</span>
         <a class="add" href="<?= url('admin/muhasebe.php?sekme=tahsilat&yeni=1') ?>"><i class="bi bi-plus-lg"></i> Tahsilat</a>
@@ -208,33 +220,33 @@ include APP . '/views/admin_header.php';
       <div class="card-body pt-1">
         <div id="mPay" class="mpanel">
           <table class="table table-sm table-hover"><thead><tr><th>Tarih</th><th>Müşteri</th><th>Yöntem</th><th class="text-end">Tutar</th></tr></thead><tbody>
-          <?php foreach ($lastPays as $p): ?><tr><td><?= dtt($p['pay_date']) ?></td><td><?= $p['customer_id'] ? '<a href="' . url('admin/musteri.php?id=' . $p['customer_id']) . '">' . e($p['musteri']) . '</a>' : '-' ?></td><td><?= pay_method_label($p['method']) ?></td><td class="text-end fw-bold text-success"><?= money($p['amount']) ?></td></tr><?php endforeach; ?>
+          <?php foreach ($lastPays as $p): ?><tr><td><?= dtt($p['pay_date']) ?></td><td><?= $p['customer_id'] ? '<a href="' . url('admin/musteri.php?id=' . $p['customer_id']) . '">' . e($p['musteri']) . '</a>' : '-' ?></td><td><?= pay_method_label($p['method']) ?></td><td class="text-end fw-bold text-success"><?= money_h($p['amount']) ?></td></tr><?php endforeach; ?>
           <?php if (!$lastPays): ?><tr><td colspan="4" class="empty">Henüz tahsilat yok.</td></tr><?php endif; ?>
           </tbody></table>
         </div>
         <div id="mSale" class="mpanel d-none">
           <table class="table table-sm table-hover"><thead><tr><th>Tarih</th><th>Müşteri</th><th>Açıklama</th><th class="text-end">Tutar</th></tr></thead><tbody>
-          <?php foreach ($lastSales as $s): ?><tr><td><?= dtt($s['sale_date']) ?></td><td><?= e($s['musteri'] ?: 'Peşin müşteri') ?></td><td class="small"><a href="<?= url('admin/satislar.php?id=' . $s['id']) ?>"><?= e($s['note'] ?: 'Satış #' . $s['id']) ?></a></td><td class="text-end fw-bold"><?= money($s['total']) ?></td></tr><?php endforeach; ?>
+          <?php foreach ($lastSales as $s): ?><tr><td><?= dtt($s['sale_date']) ?></td><td><?= e($s['musteri'] ?: 'Peşin müşteri') ?></td><td class="small"><a href="<?= url('admin/satislar.php?id=' . $s['id']) ?>"><?= e(mb_strimwidth($s['note'] ?: 'Satış #' . $s['id'], 0, 48, '…')) ?></a></td><td class="text-end fw-bold"><?= money_h($s['total']) ?></td></tr><?php endforeach; ?>
           <?php if (!$lastSales): ?><tr><td colspan="4" class="empty">Henüz satış yok.</td></tr><?php endif; ?>
           </tbody></table>
         </div>
       </div>
     </div>
   </div>
-  <div class="col-lg-6">
+  <div class="col-lg-5">
     <div class="card h-100">
-      <div class="panel-tabs grad-orange">
-        <span class="title"><i class="bi bi-box-seam me-1"></i>Kritik Stok</span>
+      <div class="panel-tabs">
+        <span class="title"><span class="ic grad-orange"><i class="bi bi-box-seam"></i></span>Kritik Stok</span>
         <a class="add" href="<?= url('admin/urunler.php?kritik=1') ?>">Tümünü gör <i class="bi bi-arrow-right"></i></a>
       </div>
       <div class="card-body pt-1">
         <?php if (!$critical): ?><div class="empty"><i class="bi bi-check2-circle"></i>Tüm ürünlerin stoğu yeterli.</div><?php endif; ?>
         <?php foreach ($critical as $p): ?>
           <div class="list-row">
-            <div class="pet-avatar" style="background:#ffedd5"><i class="bi bi-box-seam text-warning"></i></div>
-            <div class="flex-grow-1"><div class="fw-bold"><?= e($p['name']) ?></div><div class="small text-muted"><?= e($p['category']) ?></div></div>
-            <div class="text-end"><div class="fw-bold <?= $p['stock'] <= 0 ? 'text-danger' : 'text-warning' ?>"><?= qty($p['stock']) ?> <?= e($p['unit']) ?></div><div class="small text-muted">Kritik: <?= qty($p['critical_stock']) ?></div></div>
-            <a class="btn btn-sm btn-outline-primary" href="<?= url('admin/stok.php?urun=' . $p['id']) ?>"><i class="bi bi-plus-lg"></i> Giriş</a>
+            <div class="pet-avatar" style="background:#fdf1e4"><i class="bi bi-box-seam text-warning"></i></div>
+            <div class="flex-grow-1" style="min-width:0"><div class="fw-bold text-truncate"><?= e($p['name']) ?></div><div class="small text-muted"><?= e($p['category'] ?: 'Ürün') ?></div></div>
+            <div class="text-end text-nowrap"><div class="fw-bold <?= $p['stock'] <= 0 ? 'text-danger' : 'text-warning' ?>"><?= qty($p['stock']) ?> <?= e($p['unit']) ?></div><div class="small text-muted">Kritik: <?= qty($p['critical_stock']) ?></div></div>
+            <a class="btn btn-sm btn-outline-primary" href="<?= url('admin/stok.php?urun=' . $p['id']) ?>"><i class="bi bi-plus-lg"></i></a>
           </div>
         <?php endforeach; ?>
       </div>
@@ -242,5 +254,5 @@ include APP . '/views/admin_header.php';
   </div>
 </div>
 <?php
-$pageScripts = '<script>ptSpark("spCust",' . json_encode($custSeries) . ');ptSpark("spPat",' . json_encode($patSeries) . ');ptSpark("spSale",' . json_encode($saleSeries) . ');</script>';
+$pageScripts = '<script>ptSpark("spCust",' . json_encode($custSeries) . ',"#1d7a64");ptSpark("spPat",' . json_encode($patSeries) . ',"#6b55d6");ptSpark("spSale",' . json_encode($saleSeries) . ',"#e0712f");</script>';
 include APP . '/views/admin_footer.php';

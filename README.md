@@ -48,6 +48,17 @@ Dışarıya normal bir veteriner kliniği web sitesi olarak görünen; arka plan
 
 > Elle kurulum tercih ederseniz: `app/schema.sql` dosyasını phpMyAdmin ile içe aktarın, `app/config.sample.php` dosyasını `app/config.php` olarak kopyalayıp düzenleyin. (Bu durumda varsayılan veriler eklenmez; sihirbaz önerilir.)
 
+
+## Excel'den Veri Aktarımı (Kolayvet vb.)
+
+*Diğer → Excel'den Veri Aktarımı* (yalnızca yönetici). Eski programdan alınan Excel listeleri önizlenip aktarılır:
+Müşteri Listesi → Hasta Listesi → Ürün Listesi → Aşı Takvimi → Satış Geçmişi.
+
+- Telefonlar 11 haneli `05XXXXXXXXX` biçiminde kaydedilir; hücredeki "Numarayı Ara / Whatsapp'tan yaz" yazıları alınmaz.
+- Kayıtlar eski programdaki numaralarıyla eşlenir (`import_map` tablosu, ilk kullanımda otomatik oluşur); aynı dosya tekrar yüklenirse kayıtlar çoğalmaz.
+- Müşteri bakiyeleri eski programdaki "kalan bakiye" ile birebir eşitlenir (gerekirse *Kolayvet devir* kaydı oluşturulur).
+- Aktarım sırasında WhatsApp mesajı gönderilmez; her aktarım *Geri al* ile silinebilir.
+
 ## WhatsApp Kurulumu
 
 - **Manuel (varsayılan):** Hiçbir ayar gerekmez. Otomatik oluşan mesajlar *WhatsApp Mesajları* kuyruğuna düşer, personel "Gönder"e basınca WhatsApp hazır mesajla açılır.

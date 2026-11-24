@@ -75,9 +75,9 @@ include APP . '/views/admin_header.php'; ?>
 </div>
 
 <div class="row g-3">
-  <div class="col-md-4"><div class="kpi"><div class="ic <?= $balance > 0 ? 'grad-pink' : 'grad-green' ?>"><i class="bi bi-wallet2"></i></div><div><div class="l"><?= $balance > 0 ? 'Kalan Borç' : ($balance < 0 ? 'Alacaklı (avans)' : 'Bakiye') ?></div><div class="v <?= $balance > 0 ? 'text-danger' : '' ?>"><?= money(abs($balance)) ?></div></div></div></div>
-  <div class="col-md-4"><div class="kpi"><div class="ic grad-orange"><i class="bi bi-bag-check"></i></div><div><div class="l">Toplam Alışveriş</div><div class="v"><?= money(array_sum(array_column($ledger, 'borc'))) ?></div></div></div></div>
-  <div class="col-md-4"><div class="kpi"><div class="ic grad-teal"><i class="bi bi-cash-stack"></i></div><div><div class="l">Toplam Ödeme</div><div class="v"><?= money(array_sum(array_column($ledger, 'alacak'))) ?></div></div></div></div>
+  <div class="col-md-4"><div class="kpi"><div class="ic <?= $balance > 0 ? 'grad-pink' : 'grad-green' ?>"><i class="bi bi-wallet2"></i></div><div><div class="l"><?= $balance > 0 ? 'Kalan Borç' : ($balance < 0 ? 'Alacaklı (avans)' : 'Bakiye') ?></div><div class="v <?= $balance > 0 ? 'text-danger' : '' ?>"><?= money_h(abs($balance)) ?></div></div></div></div>
+  <div class="col-md-4"><div class="kpi"><div class="ic grad-orange"><i class="bi bi-bag-check"></i></div><div><div class="l">Toplam Alışveriş</div><div class="v"><?= money_h(array_sum(array_column($ledger, 'borc'))) ?></div></div></div></div>
+  <div class="col-md-4"><div class="kpi"><div class="ic grad-teal"><i class="bi bi-cash-stack"></i></div><div><div class="l">Toplam Ödeme</div><div class="v"><?= money_h(array_sum(array_column($ledger, 'alacak'))) ?></div></div></div></div>
 </div>
 
 <div class="row g-3 mt-1">

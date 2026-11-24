@@ -15,15 +15,22 @@ if (is_post()) {
             'is_efatura' => post('is_efatura') ? 1 : 0, 'address' => nul(post('address')), 'city' => nul(post('city')),
             'district' => nul(post('district')), 'notes' => nul(post('notes')), 'wa_optin' => post('wa_optin') ? 1 : 0,
         ];
+        $data['phone'] = phone_tr($data['phone']);
+        if ($data['phone2']) $data['phone2'] = phone_tr($data['phone2']);
         if ($data['name'] === '' || $data['phone'] === '') {
             flash('danger', 'Ad soyad ve telefon zorunludur.');
+            back();
+        }
+        if (!phone_valid($data['phone'])) {
+            flash('danger', 'Cep telefonu 11 haneli olmalıdır (ör. 05321234567). Girilen: ' . e(post('phone')));
             back();
         }
         if ($id) {
             update('customers', $data, $id);
             flash('success', 'Müşteri güncellendi.');
         } else {
-            $dup = val('SELECT id FROM customers WHERE phone = ?', [$data['phone']]);
+            $dup = null;
+            foreach (rows('SELECT id, phone FROM customers WHERE active = 1 AND phone IS NOT NULL') as $x) if (phone_norm($x['phone']) === phone_norm($data['phone'])) { $dup = $x['id']; break; }
             if ($dup && !post('force')) {
                 flash('warning', 'Bu telefonla kayıtlı bir müşteri zaten var: <a href="' . url('admin/musteri.php?id=' . $dup) . '">kaydı aç</a>');
                 back();
@@ -52,8 +59,8 @@ if ($islem === 'yeni' || $islem === 'duzenle') {
       <?= csrf_field() ?><input type="hidden" name="islem" value="kaydet"><input type="hidden" name="id" value="<?= $c['id'] ?>">
       <div class="row g-3">
         <div class="col-md-6"><label class="form-label fw-bold">Ad Soyad *</label><input name="name" class="form-control" required value="<?= e($c['name']) ?>" autofocus></div>
-        <div class="col-md-3"><label class="form-label fw-bold">Cep Telefonu (WhatsApp) *</label><input name="phone" class="form-control" required placeholder="05xx xxx xx xx" value="<?= e($c['phone']) ?>"></div>
-        <div class="col-md-3"><label class="form-label">2. Telefon</label><input name="phone2" class="form-control" value="<?= e($c['phone2']) ?>"></div>
+        <div class="col-md-3"><label class="form-label fw-bold">Cep Telefonu (WhatsApp) *</label><input name="phone" class="form-control js-phone" required inputmode="tel" maxlength="16" placeholder="05XXXXXXXXX" value="<?= e($c['phone']) ?>"><div class="form-text">11 hane, başında 0 ile</div></div>
+        <div class="col-md-3"><label class="form-label">2. Telefon</label><input name="phone2" class="form-control js-phone" inputmode="tel" maxlength="16" placeholder="05XXXXXXXXX" value="<?= e($c['phone2']) ?>"></div>
         <div class="col-md-4"><label class="form-label">E-posta</label><input name="email" type="email" class="form-control" value="<?= e($c['email']) ?>"></div>
         <div class="col-md-4"><label class="form-label">İl</label><input name="city" class="form-control" value="<?= e($c['city']) ?>"></div>
         <div class="col-md-4"><label class="form-label">İlçe</label><input name="district" class="form-control" value="<?= e($c['district']) ?>"></div>
@@ -91,6 +98,7 @@ include APP . '/views/admin_header.php'; ?>
   <div><h1>Müşteriler</h1><div class="sub"><?= $pg['total'] ?> kayıt</div></div>
   <div class="d-flex gap-2">
     <form class="d-flex gap-2"><input name="q" class="form-control" placeholder="Ad, telefon, hasta adı…" value="<?= e($qs) ?>"><button class="btn btn-light"><i class="bi bi-search"></i></button></form>
+    <?php if (is_admin()): ?><a href="<?= url('admin/aktar.php?tur=musteri') ?>" class="btn btn-outline-primary text-nowrap"><i class="bi bi-file-earmark-excel"></i> Excel'den Yükle</a><?php endif; ?>
     <a href="<?= url('admin/musteriler.php?islem=yeni') ?>" class="btn btn-primary text-nowrap"><i class="bi bi-person-plus"></i> Yeni Müşteri</a>
   </div>
 </div>
@@ -104,7 +112,7 @@ include APP . '/views/admin_header.php'; ?>
         <td><?= e(phone_fmt($c['phone'])) ?> <?php if ($c['phone']): ?><a href="<?= e(wa_link($c['phone'])) ?>" target="_blank" class="text-success ms-1"><i class="bi bi-whatsapp"></i></a><?php endif; ?></td>
         <td><span class="badge badge-soft"><?= (int)$c['pet_count'] ?> hasta</span></td>
         <td class="small text-muted"><?= dt($c['created_at']) ?></td>
-        <td class="text-end fw-bold <?= $c['bakiye'] > 0 ? 'text-danger' : ($c['bakiye'] < 0 ? 'text-success' : '') ?>"><?= money($c['bakiye']) ?></td>
+        <td class="text-end fw-bold <?= $c['bakiye'] > 0 ? 'text-danger' : ($c['bakiye'] < 0 ? 'text-success' : '') ?>"><?= money_h($c['bakiye']) ?></td>
         <td class="text-end text-nowrap">
           <a class="btn btn-sm btn-light" href="<?= url('admin/musteri.php?id=' . $c['id']) ?>"><i class="bi bi-eye"></i></a>
           <a class="btn btn-sm btn-light" href="<?= url('admin/musteriler.php?islem=duzenle&id=' . $c['id']) ?>"><i class="bi bi-pencil"></i></a>

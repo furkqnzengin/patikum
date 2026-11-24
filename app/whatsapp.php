@@ -30,7 +30,7 @@ function wa_render(string $body, array $vars): string
     return preg_replace_callback('/\{([a-z_]+)\}/u', fn($m) => array_key_exists($m[1], $vars) ? (string)$vars[$m[1]] : $m[0], $body);
 }
 
-function wa_link(string $phone, string $text = ''): string
+function wa_link(?string $phone, string $text = ''): string
 {
     return 'https://wa.me/' . phone_norm($phone) . ($text !== '' ? '?text=' . rawurlencode($text) : '');
 }

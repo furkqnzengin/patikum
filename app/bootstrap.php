@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 define('ROOT', dirname(__DIR__));
 define('APP', __DIR__);
-define('PATIKUM_VERSION', '1.0.0');
+define('PATIKUM_VERSION', '1.1.0');
 
 $cfgFile = APP . '/config.php';
 if (!is_file($cfgFile)) {

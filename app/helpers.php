@@ -102,6 +102,8 @@ function flashes(): string
 
 /* ---------- Biçimlendirme ---------- */
 function money($n): string { return number_format((float)$n, 2, ',', '.') . ' ₺'; }
+/** Gizlenebilir tutar (Genel Bakış'taki "bakiyeleri gizle" düğmesiyle bulanıklaşır) */
+function money_h($n): string { return '<span class="money">' . money($n) . '</span>'; }
 function qty($n): string
 {
     $n = (float)$n;
@@ -147,6 +149,24 @@ function phone_norm(?string $p): string
     elseif (strlen($d) === 11 && $d[0] === '0') $d = '9' . $d;
     return $d;
 }
+/** Türkiye cep/sabit numarasını 11 haneli 05XXXXXXXXX biçimine getirir; yurt dışı numaralarına dokunmaz */
+function phone_tr(?string $p): string
+{
+    $raw = trim((string)$p);
+    if ($raw === '') return '';
+    $d = preg_replace('/\D+/', '', $raw);
+    if (str_starts_with($raw, '+') && !str_starts_with($d, '90')) return '+' . $d;
+    if (str_starts_with($d, '0090')) $d = substr($d, 4);
+    if (strlen($d) === 12 && str_starts_with($d, '90')) $d = substr($d, 2);
+    if (strlen($d) === 10 && $d[0] !== '0') $d = '0' . $d;
+    return $d;
+}
+function phone_valid(?string $p): bool
+{
+    $p = (string)$p;
+    return str_starts_with($p, '+') ? strlen($p) >= 9 : (bool)preg_match('/^0\d{10}$/', $p);
+}
+
 function phone_fmt(?string $p): string
 {
     $d = phone_norm($p);

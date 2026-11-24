@@ -93,7 +93,7 @@ $pg = paginate($sql . ' ORDER BY s.sale_date DESC, s.id DESC', $prm, 40);
 
 include APP . '/views/admin_header.php'; ?>
 <div class="page-head"><div><h1>Satışlar</h1><div class="sub"><?= (int)$sum['n'] ?> satış · Toplam <b><?= money($sum['t']) ?></b></div></div>
-  <a class="btn btn-primary" href="<?= url('admin/satis.php') ?>"><i class="bi bi-cart-plus"></i> Yeni Satış</a></div>
+  <div class="d-flex gap-2 flex-wrap"><?php if (is_admin()): ?><a href="<?= url('admin/aktar.php?tur=satis') ?>" class="btn btn-outline-primary text-nowrap"><i class="bi bi-file-earmark-excel"></i> Excel'den Yükle</a><?php endif; ?><a class="btn btn-primary" href="<?= url('admin/satis.php') ?>"><i class="bi bi-cart-plus"></i> Yeni Satış</a></div></div>
 <form class="card mb-3"><div class="card-body row g-2 align-items-end">
   <div class="col-md-3"><label class="form-label small">Başlangıç</label><input type="date" name="baslangic" class="form-control" value="<?= e($from) ?>"></div>
   <div class="col-md-3"><label class="form-label small">Bitiş</label><input type="date" name="bitis" class="form-control" value="<?= e($to) ?>"></div>
@@ -107,7 +107,7 @@ include APP . '/views/admin_header.php'; ?>
     <tr class="<?= $s['status'] === 'iptal' ? 'opacity-50 text-decoration-line-through' : '' ?>">
       <td class="small text-muted"><?= $s['id'] ?></td><td><?= dtt($s['sale_date']) ?></td>
       <td><?= $s['customer_id'] ? '<a href="' . url('admin/musteri.php?id=' . $s['customer_id']) . '">' . e($s['musteri']) . '</a>' : '<span class="text-muted">Peşin</span>' ?><?= $s['hasta'] ? '<div class="small text-muted">' . e($s['hasta']) . '</div>' : '' ?></td>
-      <td class="small"><?= e($s['note'] ?: '-') ?></td>
+      <td class="small"><?= e($s['note'] ?: '-') ?><?= in_array($s['source'], ['kolayvet', 'kolayvet_devir'], true) ? ' <span class="badge text-bg-light border">Kolayvet</span>' : '' ?></td>
       <td class="text-end fw-bold"><?= money($s['total']) ?></td>
       <td class="text-end"><?= money($s['odenen']) ?><?= $kalan > 0.009 && $s['status'] === 'aktif' ? '<div class="small text-danger">Kalan ' . money($kalan) . '</div>' : '' ?></td>
       <td class="small"><?= e($s['fatura'] ?: '') ?></td>

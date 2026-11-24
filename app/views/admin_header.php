@@ -9,7 +9,7 @@ $notif = [
 ];
 $notifTotal = $notif['talep'] + $notif['stok'] + $notif['gecikenAsi'];
 $menu = [
-    'genel' => ['Genel Bakış', 'house-heart', url('admin/'), []],
+    'genel' => ['Genel Bakış', 'grid-1x2', url('admin/'), []],
     'randevu' => ['Randevular', 'calendar-heart', null, [
         ['Randevu Listesi', 'list-ul', url('admin/randevular.php')],
         ['Randevu Takvimi', 'calendar3', url('admin/randevular.php?gorunum=takvim')],
@@ -35,7 +35,7 @@ $menu = [
         ['Yeni Satış', 'cart-plus', url('admin/satis.php')],
         ['Satış Listesi', 'receipt', url('admin/satislar.php')],
     ]],
-    'urun' => ['Ürünler', 'box-seam', null, [
+    'urun' => ['Ürünler & Stok', 'box-seam', null, [
         ['Ürün & Hizmet Listesi', 'boxes', url('admin/urunler.php')],
         ['Stok Hareketleri', 'arrow-left-right', url('admin/stok.php')],
         ['Kritik Stok', 'exclamation-triangle', url('admin/urunler.php?kritik=1')],
@@ -45,15 +45,15 @@ $menu = [
         ['Tahsilatlar', 'box-arrow-in-down', url('admin/muhasebe.php?sekme=tahsilat')],
         ['Giderler / Ödemeler', 'box-arrow-up', url('admin/muhasebe.php?sekme=gider')],
         ['Cari Hesaplar', 'journal-text', url('admin/muhasebe.php?sekme=cari')],
-        ['E-Dönüşüm (e-Fatura / e-Arşiv)', 'file-earmark-text', url('admin/e-donusum.php')],
+        ['E-Dönüşüm', 'file-earmark-text', url('admin/e-donusum.php')],
     ]],
     'rapor' => ['Raporlar', 'bar-chart-line', url('admin/raporlar.php'), []],
-    'diger' => ['Diğer', 'grid', null, [
+    'diger' => ['Diğer', 'three-dots', null, [
         ['WhatsApp Mesajları', 'whatsapp', url('admin/whatsapp.php')],
         ['Otomatik Hatırlatıcılar', 'alarm', url('admin/hatirlaticilar.php')],
+        ['Excel\'den Veri Aktarımı', 'file-earmark-arrow-up', url('admin/aktar.php')],
         ['Ayarlar', 'gear', url('admin/ayarlar.php')],
         ['Kullanıcılar', 'person-badge', url('admin/kullanicilar.php')],
-        ['Siteyi Görüntüle', 'box-arrow-up-right', url('')],
     ]],
 ];
 ?><!doctype html>
@@ -63,42 +63,82 @@ $menu = [
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <meta name="csrf-token" content="<?= csrf_token() ?>">
+<meta name="theme-color" content="#123d34">
 <title><?= e(($pageTitle ?? 'Yönetim') . ' · ' . setting('clinic_name', 'Patikum')) ?></title>
+<script>try{if(localStorage.getItem('pt_money_hidden')==='1')document.documentElement.classList.add('money-hidden');if(localStorage.getItem('pt_side_mini')==='1')document.documentElement.classList.add('side-mini');}catch(e){}</script>
 <link rel="icon" href="<?= asset('img/favicon.svg') ?>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
 <link href="<?= asset('css/admin.css') ?>" rel="stylesheet">
 </head>
 <body data-base="<?= e(base_url()) ?>">
-<header class="pt-topbar">
-  <div class="container-xxl inner">
+<div class="pt-app">
+<aside class="pt-side" id="ptSide">
+  <div class="pt-side-head">
     <a class="pt-logo" href="<?= url('admin/') ?>">
-      <span class="paw"><img src="<?= asset('img/favicon.svg') ?>" width="26" height="26" alt=""></span>
-      patikum <small>PRO</small>
+      <span class="paw"><img src="<?= asset('img/favicon.svg') ?>" width="24" height="24" alt=""></span>
+      <span class="txt">patikum<small>klinik</small></span>
     </a>
-    <form class="pt-search ms-lg-4" action="<?= url('admin/ara.php') ?>">
+    <button class="pt-side-close d-lg-none" type="button" data-pt-side="close" aria-label="Menüyü kapat"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <nav class="pt-side-nav">
+    <?php foreach ($menu as $key => [$label, $icon, $href, $children]): $isA = $active === $key; ?>
+      <?php if (!$children): ?>
+        <a class="pt-side-link<?= $isA ? ' active' : '' ?>" href="<?= $href ?>" title="<?= e($label) ?>"><i class="bi bi-<?= $icon ?>"></i><span><?= $label ?></span></a>
+      <?php else: ?>
+        <div class="pt-side-group<?= $isA ? ' open' : '' ?>">
+          <button class="pt-side-link<?= $isA ? ' active' : '' ?>" type="button" data-pt-group title="<?= e($label) ?>"><i class="bi bi-<?= $icon ?>"></i><span><?= $label ?></span><i class="bi bi-chevron-down caret"></i>
+            <?php if ($key === 'asi' && $notif['gecikenAsi']): ?><em class="dot-count"><?= $notif['gecikenAsi'] ?></em><?php endif; ?>
+            <?php if ($key === 'randevu' && $notif['talep']): ?><em class="dot-count warn"><?= $notif['talep'] ?></em><?php endif; ?>
+          </button>
+          <div class="pt-side-sub">
+            <?php foreach ($children as [$cl, $ci, $ch]): ?>
+              <a href="<?= $ch ?>"><i class="bi bi-<?= $ci ?>"></i><?= $cl ?></a>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      <?php endif; ?>
+    <?php endforeach; ?>
+  </nav>
+  <div class="pt-side-foot">
+    <a href="<?= url('') ?>" target="_blank" class="pt-side-link"><i class="bi bi-box-arrow-up-right"></i><span>Siteyi Görüntüle</span></a>
+    <button class="pt-side-link d-none d-lg-flex" type="button" data-pt-side="mini" title="Menüyü daralt"><i class="bi bi-layout-sidebar-inset"></i><span>Menüyü daralt</span></button>
+  </div>
+</aside>
+<div class="pt-side-backdrop" data-pt-side="close"></div>
+
+<div class="pt-main">
+  <header class="pt-topbar">
+    <button class="pt-icon-btn d-lg-none" type="button" data-pt-side="open" aria-label="Menü"><i class="bi bi-list"></i></button>
+    <form class="pt-search" action="<?= url('admin/ara.php') ?>">
       <i class="bi bi-search"></i>
-      <input class="form-control" name="q" value="<?= e($_GET['q'] ?? '') ?>" placeholder="Ara: müşteri, hasta, telefon, çip no, ürün, barkod…">
+      <input class="form-control" name="q" value="<?= e($_GET['q'] ?? '') ?>" placeholder="Müşteri, hasta, telefon, çip no, ürün veya barkod ara…" autocomplete="off">
+      <kbd class="d-none d-md-inline">/</kbd>
     </form>
-    <div class="ms-auto d-flex align-items-center gap-1">
+    <div class="pt-top-actions">
+      <a class="pt-quick d-none d-xl-inline-flex" href="<?= url('admin/satis.php') ?>"><i class="bi bi-cart-plus"></i> Hızlı Satış</a>
+      <a class="pt-quick d-none d-xl-inline-flex" href="<?= url('admin/randevular.php?islem=yeni') ?>"><i class="bi bi-calendar-plus"></i> Randevu</a>
+      <button class="pt-icon-btn js-money-toggle" type="button" title="Bakiyeleri gizle / göster"><i class="bi bi-eye on"></i><i class="bi bi-eye-slash off"></i></button>
       <a class="pt-icon-btn" href="<?= url('admin/whatsapp.php') ?>" title="WhatsApp kuyruğu"><i class="bi bi-whatsapp"></i><?php if ($notif['wa']): ?><span class="count"><?= $notif['wa'] ?></span><?php endif; ?></a>
       <div class="dropdown">
         <a class="pt-icon-btn" href="#" data-bs-toggle="dropdown" title="Bildirimler"><i class="bi bi-bell"></i><?php if ($notifTotal): ?><span class="count"><?= $notifTotal ?></span><?php endif; ?></a>
-        <div class="dropdown-menu dropdown-menu-end p-2" style="min-width:290px">
+        <div class="dropdown-menu dropdown-menu-end pt-notif">
           <h6 class="dropdown-header">Bildirimler</h6>
-          <a class="dropdown-item d-flex justify-content-between" href="<?= url('admin/randevular.php?durum=talep') ?>"><span><i class="bi bi-globe2 me-2"></i>Web randevu talebi</span><b><?= $notif['talep'] ?></b></a>
-          <a class="dropdown-item d-flex justify-content-between" href="<?= url('admin/asilar.php?sekme=geciken') ?>"><span><i class="bi bi-eyedropper me-2"></i>Geciken aşı</span><b><?= $notif['gecikenAsi'] ?></b></a>
-          <a class="dropdown-item d-flex justify-content-between" href="<?= url('admin/urunler.php?kritik=1') ?>"><span><i class="bi bi-box-seam me-2"></i>Kritik stok</span><b><?= $notif['stok'] ?></b></a>
-          <a class="dropdown-item d-flex justify-content-between" href="<?= url('admin/whatsapp.php') ?>"><span><i class="bi bi-whatsapp me-2"></i>Bekleyen WhatsApp</span><b><?= $notif['wa'] ?></b></a>
+          <a class="dropdown-item" href="<?= url('admin/randevular.php?durum=talep') ?>"><span class="ic bg-warning-subtle text-warning-emphasis"><i class="bi bi-globe2"></i></span><span class="flex-grow-1">Web randevu talebi</span><b><?= $notif['talep'] ?></b></a>
+          <a class="dropdown-item" href="<?= url('admin/asilar.php?sekme=geciken') ?>"><span class="ic bg-danger-subtle text-danger-emphasis"><i class="bi bi-eyedropper"></i></span><span class="flex-grow-1">Geciken aşı</span><b><?= $notif['gecikenAsi'] ?></b></a>
+          <a class="dropdown-item" href="<?= url('admin/urunler.php?kritik=1') ?>"><span class="ic bg-info-subtle text-info-emphasis"><i class="bi bi-box-seam"></i></span><span class="flex-grow-1">Kritik stok</span><b><?= $notif['stok'] ?></b></a>
+          <a class="dropdown-item" href="<?= url('admin/whatsapp.php') ?>"><span class="ic bg-success-subtle text-success-emphasis"><i class="bi bi-whatsapp"></i></span><span class="flex-grow-1">Bekleyen WhatsApp</span><b><?= $notif['wa'] ?></b></a>
         </div>
       </div>
-      <div class="dropdown ms-2">
+      <div class="dropdown">
         <a href="#" class="pt-user" data-bs-toggle="dropdown">
           <span class="avatar"><?= e(initials($u['name'])) ?></span>
-          <span class="d-none d-md-inline fw-bold"><?= e($u['name']) ?></span><i class="bi bi-chevron-down small"></i>
+          <span class="d-none d-md-block lh-sm"><b><?= e($u['name']) ?></b><small><?= e(['admin' => 'Yönetici', 'veteriner' => 'Veteriner Hekim', 'personel' => 'Personel'][$u['role']] ?? ucfirst((string)$u['role'])) ?></small></span>
+          <i class="bi bi-chevron-down small d-none d-md-inline"></i>
         </a>
         <ul class="dropdown-menu dropdown-menu-end">
           <li><a class="dropdown-item" href="<?= url('admin/kullanicilar.php?islem=profil') ?>"><i class="bi bi-person me-2"></i>Profilim</a></li>
@@ -108,30 +148,6 @@ $menu = [
         </ul>
       </div>
     </div>
-  </div>
-</header>
-<nav class="pt-nav navbar navbar-expand-lg py-0">
-  <div class="container-xxl">
-    <button class="navbar-toggler my-2" type="button" data-bs-toggle="collapse" data-bs-target="#ptMenu"><i class="bi bi-list"></i> Menü</button>
-    <div class="collapse navbar-collapse" id="ptMenu">
-      <ul class="navbar-nav">
-        <?php foreach ($menu as $key => [$label, $icon, $href, $children]): ?>
-          <?php if (!$children): ?>
-            <li class="nav-item"><a class="nav-link<?= $active === $key ? ' active' : '' ?>" href="<?= $href ?>"><i class="bi bi-<?= $icon ?>"></i> <?= $label ?></a></li>
-          <?php else: ?>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle<?= $active === $key ? ' active' : '' ?>" href="#" data-bs-toggle="dropdown"><i class="bi bi-<?= $icon ?>"></i> <?= $label ?></a>
-              <ul class="dropdown-menu">
-                <?php foreach ($children as [$cl, $ci, $ch]): ?>
-                  <li><a class="dropdown-item" href="<?= $ch ?>"><i class="bi bi-<?= $ci ?>"></i> <?= $cl ?></a></li>
-                <?php endforeach; ?>
-              </ul>
-            </li>
-          <?php endif; ?>
-        <?php endforeach; ?>
-      </ul>
-    </div>
-  </div>
-</nav>
-<main class="container-xxl pb-4">
-<div class="mt-3"><?= flashes() ?></div>
+  </header>
+<main class="pt-content container-fluid">
+<div class="pt-flash"><?= flashes() ?></div>
