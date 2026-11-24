@@ -8,11 +8,17 @@ if (is_post()) {
     $id = (int)post('id');
     $act = post('islem');
     if ($act === 'yapildi') {
-        $next = vaccination_done($id, post('detay') ? [
-            'done_date' => post('done_date') ?: today(), 'product_id' => post('product_id'), 'batch_no' => post('batch_no'),
+        if (!post('detay') || !(int)post('product_id')) {
+            flash('warning', 'Aşıyı yapıldı olarak işaretlemek için kullanılan <b>aşı ürününü</b> seçin.');
+            redirect(url('admin/asilar.php?islem=duzenle&id=' . $id . '#yap'));
+        }
+        $next = vaccination_done($id, [
+            'done_date' => post('done_date') ?: today(), 'product_id' => (int)post('product_id'), 'batch_no' => post('batch_no'),
             'price' => post('price') !== '' ? num(post('price')) : null, 'paid' => num(post('paid')), 'pay_method' => post('pay_method', 'nakit'),
-        ] : []);
-        flash('success', 'Aşı yapıldı olarak işaretlendi.' . ($next ? ' Sonraki aşı: <b>' . e($next) . '</b>' : ''));
+        ]);
+        flash('success', 'Aşı yapıldı olarak işaretlendi.' . ($next && $next !== 'planlanmadı' ? ' Otomatik planlanan: <b>' . e($next) . '</b>' : ''));
+        $pidBack = (int)val('SELECT patient_id FROM vaccinations WHERE id = ?', [$id]);
+        redirect(url('admin/hasta.php?id=' . $pidBack . '#asilar'));
     } elseif ($act === 'ertele') {
         $v = row('SELECT due_date FROM vaccinations WHERE id = ?', [$id]);
         $base = max($v['due_date'], today());
@@ -33,10 +39,13 @@ if (is_post()) {
 }
 
 if (get('islem') === 'duzenle') {
-    $v = row('SELECT v.*, t.name AS asi, t.product_id AS tprod, p.name AS hasta, p.id AS pid, c.name AS sahip FROM vaccinations v JOIN vaccine_types t ON t.id = v.vaccine_type_id JOIN patients p ON p.id = v.patient_id JOIN customers c ON c.id = p.customer_id WHERE v.id = ?', [(int)get('id')]);
+    $v = row('SELECT v.*, t.name AS asi, t.name AS vaccine_name, t.product_id AS tprod, p.name AS hasta, p.id AS pid, p.species_id, c.name AS sahip FROM vaccinations v JOIN vaccine_types t ON t.id = v.vaccine_type_id JOIN patients p ON p.id = v.patient_id JOIN customers c ON c.id = p.customer_id WHERE v.id = ?', [(int)get('id')]);
     if (!$v) redirect(url('admin/asilar.php'));
     $prodId = $v['product_id'] ?: $v['tprod'];
     $prod = $prodId ? row('SELECT * FROM products WHERE id = ?', [$prodId]) : null;
+    $doneDefault = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)get('tarih')) ? get('tarih') : today();
+    $preview = $v['status'] === 'planlandi' ? vaccine_flow_next($v, $doneDefault, $prod ? (int)$prod['id'] : null) : [];
+    $flowAll = rows('SELECT f.*, t.name AS to_name FROM vaccine_flow f JOIN vaccine_types t ON t.id = f.to_type_id WHERE f.active = 1 AND f.from_type_id = ?', [$v['vaccine_type_id']]);
     include APP . '/views/admin_header.php'; ?>
     <div class="page-head"><div><h1><?= e($v['asi']) ?> — <?= e($v['hasta']) ?></h1><div class="sub">Sahibi: <?= e($v['sahip']) ?> · <?= status_badge($v['status']) ?></div></div>
       <a href="<?= url('admin/hasta.php?id=' . $v['pid']) ?>#asilar" class="btn btn-light"><i class="bi bi-arrow-left"></i> Hasta kartı</a></div>
@@ -53,22 +62,40 @@ if (get('islem') === 'duzenle') {
           <div class="d-flex gap-2"><?php if ($v['status'] === 'planlandi'): ?><button name="islem" value="iptal" class="btn btn-outline-secondary">İptal Et</button><?php endif; ?><button class="btn btn-primary">Kaydet</button></div>
         </div></form></div>
       <?php if ($v['status'] === 'planlandi'): ?>
-      <div class="col-lg-6"><form method="post" class="card border-success border-2 border"><div class="card-header text-success"><i class="bi bi-check2-circle"></i> Aşıyı Yap / Ücretlendir</div><div class="card-body">
+      <div class="col-lg-6" id="yap"><form method="post" class="card border-success border-2 border"><div class="card-header text-success"><i class="bi bi-check2-circle"></i> Aşıyı Yap / Ücretlendir</div><div class="card-body">
         <?= csrf_field() ?><input type="hidden" name="islem" value="yapildi"><input type="hidden" name="detay" value="1"><input type="hidden" name="id" value="<?= $v['id'] ?>">
         <div class="row g-3">
-          <div class="col-6"><label class="form-label">Uygulama Tarihi</label><input type="date" name="done_date" class="form-control" value="<?= today() ?>"></div>
+          <div class="col-6"><label class="form-label">Uygulama Tarihi</label><input type="date" name="done_date" class="form-control" value="<?= e($doneDefault) ?>"></div>
           <div class="col-6"><label class="form-label">Seri / Lot No</label><input name="batch_no" class="form-control" value="<?= e($v['batch_no']) ?>"></div>
-          <div class="col-12"><label class="form-label">Kullanılan Ürün (stoktan düşer)</label><select name="product_id" id="vprod"><?php if ($prod): ?><option value="<?= $prod['id'] ?>" selected><?= e($prod['name']) ?></option><?php endif; ?></select></div>
+          <div class="col-12"><label class="form-label fw-bold">Kullanılan Aşı / Ürün <span class="text-danger">*</span></label><select name="product_id" id="vprod" required><?php if ($prod): ?><option value="<?= $prod['id'] ?>" selected><?= e($prod['name']) ?></option><?php endif; ?></select>
+            <div class="form-text" id="veff"><?= $prod && $prod['effect_days'] ? '<i class="bi bi-hourglass-split"></i> Bu ürünün etki süresi <b>' . (int)$prod['effect_days'] . ' gün</b>.' : 'Ürün seçmek zorunludur; stoktan düşer ve ücreti hesaba işlenir.' ?></div></div>
           <div class="col-4"><label class="form-label">Ücret (₺)</label><input name="price" id="vprice" class="form-control" value="<?= $prod ? e($prod['sell_price']) : '' ?>"></div>
           <div class="col-4"><label class="form-label">Alınan (₺)</label><input name="paid" class="form-control" placeholder="0"></div>
           <div class="col-4"><label class="form-label">Yöntem</label><select name="pay_method" class="form-select"><?= options(['nakit' => 'Nakit', 'kart' => 'Kart', 'havale' => 'Havale'], 'nakit') ?></select></div>
         </div>
-        <div class="form-text">Rapel süresi tanımlıysa bir sonraki aşı otomatik planlanır ve müşteriye WhatsApp bilgilendirmesi gider.</div>
+        <div class="next-plan mt-3">
+          <div class="fw-bold small mb-1"><i class="bi bi-diagram-3 text-primary"></i> Yapıldı işaretlenince otomatik planlanacak:</div>
+          <div id="vnext">
+          <?php if ($preview): foreach ($preview as $x): ?>
+            <div class="np-row"><span class="vac-name"><?= e($x['name']) ?></span> <?= $x['dose_label'] ? '<span class="small text-muted">· ' . e($x['dose_label']) . '</span>' : '' ?><span class="ms-auto small"><b><?= dt($x['due_date']) ?></b> <span class="text-muted">· <?= e($x['why']) ?></span></span></div>
+          <?php endforeach; else: ?><div class="small text-muted">Bu aşı için tanımlı bir sonraki aşı yok. Aşı akışını <a href="<?= url('admin/asi-tanimlari.php') ?>">Aşı Tanımları</a> sayfasından veya ürünün etki süresinden ayarlayabilirsiniz.</div><?php endif; ?>
+          </div>
+          <div class="small text-muted mt-1">Tarihler uygulama tarihine göre hesaplanır. Müşteriye WhatsApp bilgilendirmesi gider.</div>
+        </div>
       </div><div class="card-footer bg-white text-end"><button class="btn btn-success px-4"><i class="bi bi-check-lg"></i> Yapıldı</button></div></form></div>
       <?php endif; ?>
     </div>
     <?php
-    $pageScripts = '<script>ptProductSelect(document.getElementById("vprod"),o=>{document.getElementById("vprice").value=o.price;});</script>';
+    $flowJs = array_map(fn($f) => ['from' => $f['from_dose'], 'same' => (int)$f['to_type_id'] === (int)$v['vaccine_type_id'] && ((string)$f['to_dose'] === 'Y' || (string)$f['to_dose'] === vdose_code($v['dose_label'])), 'name' => $f['to_name'], 'dose' => vdose_label((string)$f['to_dose']), 'days' => (int)$f['days']], $flowAll);
+    $pageScripts = '<script>(function(){const flow=' . json_encode($flowJs, JSON_UNESCAPED_UNICODE) . ',code=' . json_encode(vdose_code($v['dose_label'])) . ',vname=' . json_encode($v['asi'], JSON_UNESCAPED_UNICODE) . ',vdose=' . json_encode($v['dose_label'], JSON_UNESCAPED_UNICODE) . ';
+const box=document.getElementById("vnext"),dIn=document.querySelector("input[name=done_date]");let eff=' . (int)($prod['effect_days'] ?? 0) . ',pname=' . json_encode($prod['name'] ?? '', JSON_UNESCAPED_UNICODE) . ';
+const fmt=d=>d.toLocaleDateString("tr-TR",{day:"2-digit",month:"2-digit",year:"numeric"});const esc=s=>String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+function draw(){if(!box)return;const base=new Date((dIn.value||new Date().toISOString().slice(0,10))+"T12:00:00");let out=[];
+flow.forEach(f=>{if(!(f.from==="*"||f.from===code||(code===""&&(f.from==="1"||f.from==="T"))))return;let days=f.days,why=days+" gün sonra (aşı akışı)";if(eff>0&&f.same){days=eff;why=eff+" gün sonra ("+pname+" etki süresi)";}out.push([f.name,f.dose,days,why]);});
+if(!out.length&&eff>0)out.push([vname,vdose,eff,eff+" gün sonra ("+pname+" etki süresi)"]);
+if(!out.length)return;box.innerHTML=out.map(o=>{const d=new Date(base);d.setDate(d.getDate()+o[2]);return `<div class="np-row"><span class="vac-name">${esc(o[0])}</span> ${o[1]?`<span class="small text-muted">· ${esc(o[1])}</span>`:""}<span class="ms-auto small"><b>${fmt(d)}</b> <span class="text-muted">· ${esc(o[3])}</span></span></div>`}).join("");}
+ptProductSelect(document.getElementById("vprod"),o=>{document.getElementById("vprice").value=o.price;eff=o.effect||0;pname=o.text;document.getElementById("veff").innerHTML=eff?`<i class="bi bi-hourglass-split"></i> Bu ürünün etki süresi <b>${eff} gün</b>: aynı aşının tekrarı (yıllık rapel) buna göre planlanır.`:"Bu üründe etki süresi girilmemiş; aşı akışındaki süre kullanılır.";draw();});
+dIn&&dIn.addEventListener("change",draw);})();</script>';
     include APP . '/views/admin_footer.php';
     exit;
 }
@@ -191,7 +218,7 @@ $head(); ?>
       <td><?= vacc_due_badge($v) ?></td>
       <td class="text-end text-nowrap">
         <?php if ($v['status'] === 'planlandi'): ?>
-          <form method="post" class="d-inline"><?= csrf_field() ?><input type="hidden" name="islem" value="yapildi"><input type="hidden" name="id" value="<?= $v['id'] ?>"><button class="btn btn-sm btn-outline-success" title="Yapıldı"><i class="bi bi-check-lg"></i></button></form>
+          <a class="btn btn-sm btn-outline-success" href="?islem=duzenle&id=<?= $v['id'] ?>#yap" title="Yapıldı olarak işaretle (ürün seçerek)"><i class="bi bi-check-lg"></i></a>
           <?php if ($v['phone']): ?><a class="btn btn-sm btn-outline-success" target="_blank" title="WhatsApp hatırlat" href="<?= e(wa_link($v['phone'], $msg)) ?>"><i class="bi bi-whatsapp"></i></a><?php endif; ?>
           <form method="post" class="d-inline"><?= csrf_field() ?><input type="hidden" name="islem" value="ertele"><input type="hidden" name="id" value="<?= $v['id'] ?>"><button class="btn btn-sm btn-light" title="1 hafta ertele"><i class="bi bi-clock-history"></i></button></form>
         <?php endif; ?>

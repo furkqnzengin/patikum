@@ -285,3 +285,11 @@ html.money-hidden .dash-hero .money-toggle-lg { background: var(--pt-accent); co
 .vlegend { display: inline-flex; align-items: center; gap: .35rem; font-weight: 600; }
 .vlegend::before { content: ""; width: 10px; height: 10px; border-radius: 3px; }
 .vlegend.done::before { background: #5cc98b; } .vlegend.plan::before { background: #5db4ee; } .vlegend.late::before { background: #e5484d; }
+
+.next-plan { background: #f4faf7; border: 1px dashed #b9dccf; border-radius: 14px; padding: .75rem .9rem; }
+.np-row { display: flex; align-items: center; gap: .4rem; padding: .3rem 0; border-bottom: 1px solid #e6efeb; flex-wrap: wrap; }
+.np-row:last-child { border-bottom: 0; }
+.flow-row { display: flex; align-items: center; gap: .6rem; padding: .6rem .2rem; border-bottom: 1px solid #f0f3f2; flex-wrap: wrap; }
+.flow-row .arrow { color: var(--pt-muted); font-size: .8rem; white-space: nowrap; background: #f2f5f4; border-radius: 20px; padding: .15rem .6rem; }
+.flow-row .chipv { font-weight: 700; font-size: .84rem; }
+.flow-row .chipv small { color: var(--pt-muted); font-weight: 600; }

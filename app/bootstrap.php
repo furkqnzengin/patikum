@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 define('ROOT', dirname(__DIR__));
 define('APP', __DIR__);
-define('PATIKUM_VERSION', '1.1.0');
+define('PATIKUM_VERSION', '1.2.0');
 
 $cfgFile = APP . '/config.php';
 if (!is_file($cfgFile)) {
@@ -32,6 +32,8 @@ require APP . '/sales.php';
 require APP . '/vaccine.php';
 require APP . '/reminders.php';
 require APP . '/einvoice.php';
+require APP . '/migrate.php';
+db_migrate();
 
 if (PHP_SAPI !== 'cli') {
     $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');

@@ -39,7 +39,10 @@ if (is_post()) {
     }
     if ($act === 'asi_ekle') {
         $vid = insert('vaccinations', ['patient_id' => $id, 'vaccine_type_id' => (int)post('vaccine_type_id'), 'dose_label' => nul(post('dose_label')), 'due_date' => post('due_date') ?: today(), 'status' => 'planlandi', 'notes' => nul(post('notes'))]);
-        if (post('yapildi')) vaccination_done($vid, ['done_date' => post('due_date') ?: today(), 'price' => post('price') !== '' ? num(post('price')) : null, 'batch_no' => post('batch_no')]);
+        if (post('yapildi')) {
+            flash('info', 'Aşı eklendi. Yapıldı olarak işaretlemek için kullanılan aşı ürününü seçin.');
+            redirect(url('admin/asilar.php?islem=duzenle&id=' . $vid . '&tarih=' . urlencode((string)(post('due_date') ?: today())) . '#yap'));
+        }
         flash('success', 'Aşı kaydı eklendi.');
     }
     redirect(url('admin/hasta.php?id=' . $id . '#' . (post('islem') === 'asi_ekle' ? 'asilar' : 'islemler')));
@@ -105,7 +108,7 @@ include APP . '/views/admin_header.php'; ?>
             <td><?= status_badge($v['status']) ?></td>
             <td class="text-end text-nowrap">
               <?php if ($v['status'] === 'planlandi'): ?>
-                <form method="post" action="<?= url('admin/asilar.php') ?>" class="d-inline"><?= csrf_field() ?><input type="hidden" name="islem" value="yapildi"><input type="hidden" name="id" value="<?= $v['id'] ?>"><button class="btn btn-sm btn-outline-success" title="Yapıldı"><i class="bi bi-check-lg"></i></button></form>
+                <a href="<?= url('admin/asilar.php?islem=duzenle&id=' . $v['id'] . '#yap') ?>" class="btn btn-sm btn-outline-success" title="Yapıldı olarak işaretle (ürün seçerek)"><i class="bi bi-check-lg"></i></a>
               <?php endif; ?>
               <a class="btn btn-sm btn-light" href="<?= url('admin/asilar.php?islem=duzenle&id=' . $v['id']) ?>"><i class="bi bi-pencil"></i></a>
             </td>
@@ -171,7 +174,7 @@ include APP . '/views/admin_header.php'; ?>
     <div class="col-12"><label class="form-label">Aşı</label><select name="vaccine_type_id" class="form-select" required><?= options($types, '', 'id', 'name', '— Seçin —') ?></select></div>
     <div class="col-6"><label class="form-label">Tarih</label><input type="date" name="due_date" class="form-control" value="<?= today() ?>"></div>
     <div class="col-6"><label class="form-label">Doz</label><input name="dose_label" class="form-control" placeholder="1. Doz / Rapel"></div>
-    <div class="col-12"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="yapildi" value="1" id="yp"><label for="yp" class="form-check-label">Bu aşı yapıldı (stoktan düş, ücretlendir, sonraki rapeli planla)</label></div></div>
+    <div class="col-12"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="yapildi" value="1" id="yp"><label for="yp" class="form-check-label">Bu aşı yapıldı (sonraki adımda kullanılan aşı ürünü seçilir, sonraki aşılar otomatik planlanır)</label></div></div>
     <div class="col-6"><label class="form-label">Seri / Lot No</label><input name="batch_no" class="form-control"></div>
     <div class="col-6"><label class="form-label">Ücret (boş = ürün fiyatı)</label><input name="price" class="form-control"></div>
     <div class="col-12"><label class="form-label">Not</label><input name="notes" class="form-control"></div>

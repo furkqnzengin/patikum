@@ -70,20 +70,9 @@ function vaccination_done(int $id, array $o = []): ?string
         'batch_no' => nul($o['batch_no'] ?? null) ?? $v['batch_no'], 'sale_id' => $saleId, 'user_id' => $_SESSION['uid'] ?? null,
     ], $id);
 
-    // Sonraki aşı (rapel) otomatik planlama
-    $nextText = 'planlanmadı';
-    $future = row("SELECT due_date FROM vaccinations WHERE patient_id = ? AND vaccine_type_id = ? AND status = 'planlandi' AND id <> ? ORDER BY due_date LIMIT 1",
-        [$v['patient_id'], $v['vaccine_type_id'], $id]);
-    if ($future) {
-        $nextText = dt($future['due_date']);
-    } else {
-        $booster = val('SELECT booster_days FROM vaccine_protocols WHERE species_id = ? AND vaccine_type_id = ? AND active = 1 LIMIT 1', [$v['species_id'], $v['vaccine_type_id']]);
-        if ($booster) {
-            $next = date('Y-m-d', strtotime($done . ' +' . (int)$booster . ' days'));
-            insert('vaccinations', ['patient_id' => $v['patient_id'], 'vaccine_type_id' => $v['vaccine_type_id'], 'dose_label' => 'Rapel', 'due_date' => $next, 'status' => 'planlandi']);
-            $nextText = dt($next);
-        }
-    }
+    // Sonraki aşılar: aşı akışı kuralları + ürünün etki süresi
+    $planned = vaccine_flow_apply($id, vaccine_flow_next($v, $done, $productId ? (int)$productId : null));
+    $nextText = $planned ? implode(', ', array_map(fn($x) => $x['name'] . ($x['dose_label'] ? ' ' . $x['dose_label'] : '') . ' - ' . dt($x['due_date']), $planned)) : 'planlanmadı';
     // Sonraki herhangi bir aşı
     $anyNext = row("SELECT v.due_date, t.name FROM vaccinations v JOIN vaccine_types t ON t.id = v.vaccine_type_id WHERE v.patient_id = ? AND v.status = 'planlandi' ORDER BY v.due_date LIMIT 1", [$v['patient_id']]);
     wa_auto('asi_yapildi', (int)$v['customer_id'], [
@@ -91,4 +80,89 @@ function vaccination_done(int $id, array $o = []): ?string
         'sonraki' => $anyNext ? $anyNext['name'] . ' - ' . dt($anyNext['due_date']) : $nextText,
     ], 'vdone:' . $id);
     return $nextText;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Otomatik aşı akışı                                                  */
+/* ------------------------------------------------------------------ */
+
+/** Doz etiketini koda çevirir: "1. Doz" → 1, "Yıllık Rapel" → Y, "Tek Doz" → T, boş → '' */
+function vdose_code(?string $label): string
+{
+    $l = mb_strtolower(trim((string)$label), 'UTF-8');
+    if ($l === '') return '';
+    if (str_contains($l, 'yıllık') || str_contains($l, 'yillik') || str_contains($l, 'rapel')) return 'Y';
+    if (str_contains($l, 'tek')) return 'T';
+    if (preg_match('/^(\d)/', $l, $m)) return $m[1];
+    return '';
+}
+
+function vdose_label(string $code): ?string
+{
+    return ['1' => '1. Doz', '2' => '2. Doz', '3' => '3. Doz', 'Y' => 'Yıllık', 'T' => 'Tek Doz'][$code] ?? null;
+}
+
+function vdose_options(bool $any = false): array
+{
+    return ($any ? ['*' => 'Herhangi bir doz'] : []) + ['1' => '1. Doz', '2' => '2. Doz', '3' => '3. Doz', 'T' => 'Tek Doz', 'Y' => 'Yıllık'];
+}
+
+/**
+ * Yapılan aşıdan sonra planlanacak aşıları hesaplar (kaydetmez).
+ * $v: vaccine_type_id, dose_label, species_id, patient_id, vaccine_name
+ * Ürünün etki süresi (gün) girilmişse aynı aşının bir sonraki dozu o süreye göre planlanır.
+ */
+function vaccine_flow_next(array $v, string $doneDate, ?int $productId): array
+{
+    $code = vdose_code($v['dose_label'] ?? null);
+    $eff = $productId ? (int)val('SELECT effect_days FROM products WHERE id = ?', [$productId]) : 0;
+    $prodName = $productId && $eff ? (string)val('SELECT name FROM products WHERE id = ?', [$productId]) : '';
+    $out = [];
+    $rules = rows('SELECT f.*, t.name AS to_name FROM vaccine_flow f JOIN vaccine_types t ON t.id = f.to_type_id WHERE f.active = 1 AND f.from_type_id = ? ORDER BY f.sort, f.id', [(int)$v['vaccine_type_id']]);
+    foreach ($rules as $r) {
+        $fd = (string)$r['from_dose'];
+        if (!($fd === '*' || $fd === $code || ($code === '' && in_array($fd, ['1', 'T'], true)))) continue;
+        $days = (int)$r['days'];
+        $why = $days . ' gün sonra (aşı akışı)';
+        // Etki süresi yalnızca aynı aşının tekrarına (yıllık / aynı doz) uygulanır; 1. → 2. doz arası akıştaki süredir
+        if ($eff > 0 && (int)$r['to_type_id'] === (int)$v['vaccine_type_id'] && ((string)$r['to_dose'] === 'Y' || (string)$r['to_dose'] === $code)) {
+            $days = $eff;
+            $why = $eff . ' gün sonra (' . $prodName . ' etki süresi)';
+        }
+        $out[] = ['vaccine_type_id' => (int)$r['to_type_id'], 'name' => $r['to_name'], 'dose_label' => vdose_label((string)$r['to_dose']),
+            'due_date' => date('Y-m-d', strtotime($doneDate . ' +' . $days . ' days')), 'why' => $why, 'kind' => 'rule'];
+    }
+    if (!$out && $eff > 0) {
+        $out[] = ['vaccine_type_id' => (int)$v['vaccine_type_id'], 'name' => $v['vaccine_name'], 'dose_label' => $v['dose_label'] ?: null,
+            'due_date' => date('Y-m-d', strtotime($doneDate . ' +' . $eff . ' days')), 'why' => $eff . ' gün sonra (' . $prodName . ' etki süresi)', 'kind' => 'effect'];
+    }
+    if (!$out && !empty($v['species_id'])) {
+        $booster = (int)val('SELECT booster_days FROM vaccine_protocols WHERE species_id = ? AND vaccine_type_id = ? AND active = 1 LIMIT 1', [$v['species_id'], $v['vaccine_type_id']]);
+        if ($booster > 0) {
+            $out[] = ['vaccine_type_id' => (int)$v['vaccine_type_id'], 'name' => $v['vaccine_name'], 'dose_label' => 'Rapel',
+                'due_date' => date('Y-m-d', strtotime($doneDate . ' +' . $booster . ' days')), 'why' => $booster . ' gün sonra (rapel)', 'kind' => 'booster'];
+        }
+    }
+    return $out;
+}
+
+/** Hesaplanan planı kaydeder; aynı aşının aynı dozu zaten planlıysa yenisini açmaz, tarihini günceller. */
+function vaccine_flow_apply(int $doneId, array $plan): array
+{
+    $pid = (int)val('SELECT patient_id FROM vaccinations WHERE id = ?', [$doneId]);
+    $res = [];
+    foreach ($plan as $x) {
+        $existing = rows("SELECT id, dose_label FROM vaccinations WHERE patient_id = ? AND vaccine_type_id = ? AND status = 'planlandi' AND id <> ? ORDER BY due_date", [$pid, $x['vaccine_type_id'], $doneId]);
+        $same = null;
+        foreach ($existing as $e) if (vdose_code($e['dose_label']) === vdose_code($x['dose_label'])) { $same = $e; break; }
+        if (!$same && $x['kind'] !== 'rule' && $existing) $same = $existing[0];
+        if ($same) {
+            update('vaccinations', ['due_date' => $x['due_date'], 'dose_label' => $x['dose_label'] ?? $same['dose_label']], (int)$same['id']);
+        } else {
+            insert('vaccinations', ['patient_id' => $pid, 'vaccine_type_id' => $x['vaccine_type_id'], 'dose_label' => $x['dose_label'], 'due_date' => $x['due_date'], 'status' => 'planlandi', 'notes' => 'Otomatik planlandı']);
+        }
+        $res[] = $x;
+    }
+    return $res;
 }

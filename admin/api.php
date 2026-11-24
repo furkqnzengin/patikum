@@ -25,14 +25,14 @@ switch ($a) {
         json_out(array_map(fn($r) => ['id' => $r['id'], 'name' => $r['name'], 'breed' => $r['breed'], 'icon' => species_icon($r['icon'])], $list));
 
     case 'products':
-        $sql = 'SELECT id, name, barcode, sell_price, vat_rate, stock, is_service, unit FROM products WHERE active = 1';
+        $sql = 'SELECT id, name, barcode, sell_price, vat_rate, stock, is_service, unit, effect_days FROM products WHERE active = 1';
         $p = [];
         if ($qs !== '') {
             $sql .= ' AND (name LIKE ? OR barcode = ? OR category LIKE ?)';
             $p = [$like, $qs, $like];
         }
         $sql .= ' ORDER BY is_service DESC, name LIMIT 40';
-        json_out(array_map(fn($r) => ['id' => $r['id'], 'text' => $r['name'], 'barcode' => $r['barcode'], 'price' => (float)$r['sell_price'], 'vat' => (int)$r['vat_rate'], 'stock' => qty($r['stock']), 'is_service' => (int)$r['is_service'], 'unit' => $r['unit']], rows($sql, $p)));
+        json_out(array_map(fn($r) => ['id' => $r['id'], 'text' => $r['name'], 'barcode' => $r['barcode'], 'price' => (float)$r['sell_price'], 'vat' => (int)$r['vat_rate'], 'stock' => qty($r['stock']), 'is_service' => (int)$r['is_service'], 'unit' => $r['unit'], 'effect' => (int)$r['effect_days']], rows($sql, $p)));
 
     case 'breeds':
         json_out(array_column(rows('SELECT name FROM breeds WHERE species_id = ? ORDER BY name', [(int)get('species_id')]), 'name'));

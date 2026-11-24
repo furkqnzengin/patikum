@@ -65,8 +65,7 @@ function vacc_rows(array $list, string $emptyText): void
             <div class="small"><?= dt_long($v['due_date']) ?></div><?= vacc_due_badge($v) ?>
           </div>
           <div class="d-flex gap-1">
-            <form method="post" action="<?= url('admin/asilar.php') ?>"><?= csrf_field() ?><input type="hidden" name="islem" value="yapildi"><input type="hidden" name="id" value="<?= $v['id'] ?>">
-              <button class="btn btn-sm btn-outline-success" title="Yapıldı olarak işaretle"><i class="bi bi-check-lg"></i></button></form>
+            <a class="btn btn-sm btn-outline-success" href="<?= url('admin/asilar.php?islem=duzenle&id=' . $v['id'] . '#yap') ?>" title="Yapıldı olarak işaretle (ürün seçerek)"><i class="bi bi-check-lg"></i></a>
             <div class="dropdown">
               <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">İşlemler</button>
               <ul class="dropdown-menu dropdown-menu-end">
