@@ -15,7 +15,7 @@
 
   // Müşteri seçici (uzaktan arama)
   function initCustomer(sel) {
-    if (sel.tomselect) return;
+    if (sel.tomselect || typeof TomSelect === 'undefined') return;
     new TomSelect(sel, {
       valueField: 'id', labelField: 'text', searchField: ['text'], maxOptions: 30, preload: 'focus',
       placeholder: sel.getAttribute('placeholder') || 'Müşteri ara (ad / telefon)…',
@@ -45,6 +45,7 @@
 
   // Ürün seçici
   window.ptProductSelect = function (sel, onPick) {
+    if (!sel || typeof TomSelect === 'undefined') return null;
     return new TomSelect(sel, {
       valueField: 'id', labelField: 'text', searchField: ['text', 'barcode'], maxOptions: 40, preload: 'focus',
       placeholder: 'Ürün / hizmet ara veya barkod okut…',
@@ -60,7 +61,7 @@
   window.ptSpark = function (id, data, color) {
     const c = document.getElementById(id);
     if (!c || !window.Chart) return;
-    color = color || '#1d7a64';
+    color = color || '#1f6a70';
     const g = c.getContext('2d').createLinearGradient(0, 0, 0, 64);
     g.addColorStop(0, color + '40'); g.addColorStop(1, color + '00');
     new Chart(c, {
@@ -83,9 +84,14 @@
 
   // Kenar menü: grup aç/kapa, mobil aç/kapa, daralt
   const html = document.documentElement;
-  document.querySelectorAll('[data-pt-group]').forEach(b => b.addEventListener('click', () => {
-    if (html.classList.contains('side-mini') && window.innerWidth >= 992) return;
-    b.parentElement.classList.toggle('open');
+  // Menü grupları <details> ile çalışır (JS olmadan da açılır). Daraltılmış menüde gruba tıklanınca menü genişler.
+  document.querySelectorAll('[data-pt-group]').forEach(b => b.addEventListener('click', (e) => {
+    if (html.classList.contains('side-mini') && window.innerWidth >= 992) {
+      e.preventDefault();
+      html.classList.remove('side-mini');
+      try { localStorage.setItem('pt_side_mini', '0'); } catch (x) {}
+      b.parentElement.open = true;
+    }
   }));
   document.querySelectorAll('[data-pt-side]').forEach(b => b.addEventListener('click', () => {
     const a = b.dataset.ptSide;
@@ -125,6 +131,53 @@
       if (inp.value && !inp.value.startsWith('+') && inp.value.length !== 11) { e.preventDefault(); inp.classList.add('is-invalid'); inp.focus(); alert('Telefon numarası 11 haneli olmalıdır (ör. 05321234567).'); }
     });
   });
+
+  // Üst arama: yazdıkça müşteri / hasta / ürün önerileri
+  (function () {
+    const form = document.querySelector('.pt-search');
+    const inp = form && form.querySelector('input[name=q]');
+    if (!inp) return;
+    inp.setAttribute('autocomplete', 'off');
+    const box = document.createElement('div');
+    box.className = 'pt-search-drop d-none';
+    form.appendChild(box);
+    let timer = null, seq = 0, items = [], sel = -1;
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const mark = (s, q) => {
+      const t = esc(s); const k = q.trim(); if (!k) return t;
+      const i = t.toLocaleLowerCase('tr').indexOf(esc(k).toLocaleLowerCase('tr'));
+      return i < 0 ? t : t.slice(0, i) + '<mark>' + t.slice(i, i + esc(k).length) + '</mark>' + t.slice(i + esc(k).length);
+    };
+    const close = () => { box.classList.add('d-none'); sel = -1; };
+    const highlight = () => items.forEach((a, i) => a.classList.toggle('active', i === sel));
+    function render(d, q) {
+      const sec = (title, icon, list, avatar) => list.length ? `<div class="sd-head"><i class="bi bi-${icon}"></i> ${title}</div>` + list.map(r =>
+        `<a class="sd-item" href="${esc(r.url)}"><span class="sd-av">${avatar ? esc(r.icon || '🐾') : '<i class="bi bi-' + icon + '"></i>'}</span><span class="sd-txt"><b>${mark(r.title, q)}</b><small>${mark(r.sub, q)}</small></span></a>`).join('') : '';
+      const html = sec('Müşteriler', 'person', d.customers || []) + sec('Hastalar', 'heart-pulse', d.patients || [], true) + sec('Ürünler', 'box-seam', d.products || []);
+      box.innerHTML = html ? html + `<a class="sd-all" href="${form.action}?q=${encodeURIComponent(q)}">Tüm sonuçları göster <i class="bi bi-arrow-right"></i></a>` : `<div class="sd-empty">"${esc(q)}" için sonuç yok</div>`;
+      items = [...box.querySelectorAll('.sd-item, .sd-all')];
+      sel = -1;
+      box.classList.remove('d-none');
+    }
+    inp.addEventListener('input', () => {
+      const q = inp.value.trim();
+      clearTimeout(timer);
+      if (q.length < 2) { close(); return; }
+      timer = setTimeout(() => {
+        const my = ++seq;
+        api('a=search&q=' + encodeURIComponent(q)).then(d => { if (my === seq && inp.value.trim() === q) render(d, q); }).catch(() => {});
+      }, 180);
+    });
+    inp.addEventListener('keydown', (e) => {
+      if (box.classList.contains('d-none') || !items.length) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); sel = (sel + 1) % items.length; highlight(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); sel = (sel - 1 + items.length) % items.length; highlight(); }
+      else if (e.key === 'Enter' && sel >= 0) { e.preventDefault(); location.href = items[sel].href; }
+      else if (e.key === 'Escape') close();
+    });
+    inp.addEventListener('focus', () => { if (box.innerHTML && inp.value.trim().length >= 2) box.classList.remove('d-none'); });
+    document.addEventListener('click', (e) => { if (!form.contains(e.target)) close(); });
+  })();
 
   // Tarih alanı kısayolları
   document.querySelectorAll('[data-fill-date]').forEach(b => b.addEventListener('click', () => {

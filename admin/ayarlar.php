@@ -6,7 +6,7 @@ $active = 'diger';
 $tab = get('sekme', 'genel');
 
 $fields = [
-    'genel' => ['clinic_name', 'clinic_slogan', 'clinic_phone', 'clinic_whatsapp', 'clinic_email', 'clinic_address', 'clinic_hours', 'clinic_instagram', 'clinic_facebook', 'clinic_map', 'site_hero_image', 'site_about', 'site_url', 'appointment_types', 'product_categories', 'expense_categories', 'service_vat', 'web_appointments'],
+    'genel' => ['clinic_name', 'clinic_slogan', 'clinic_phone', 'clinic_whatsapp', 'clinic_email', 'clinic_address', 'clinic_hours', 'clinic_instagram', 'clinic_facebook', 'clinic_map', 'site_hero_image', 'site_about', 'kopuk_admin', 'kopuk_site', 'site_url', 'appointment_types', 'product_categories', 'expense_categories', 'service_vat', 'web_appointments'],
     'whatsapp' => ['wa_driver', 'wa_send_instant', 'wa_cloud_token', 'wa_cloud_phone_id', 'wa_cloud_version', 'wa_cloud_lang', 'wa_api_url', 'wa_api_token', 'wa_api_auth_header', 'wa_api_auth_prefix', 'wa_api_phone_field', 'wa_api_message_field', 'wa_api_extra'],
     'efatura' => ['einv_provider', 'einv_title', 'einv_vkn', 'einv_tax_office', 'einv_address', 'einv_city', 'einv_district', 'einv_prefix', 'einv_api_url', 'einv_api_user', 'einv_api_pass'],
 ];
@@ -81,7 +81,7 @@ if (is_post()) {
     }
     foreach ($fields[$tab] ?? [] as $f) {
         if (!array_key_exists($f, $_POST)) {
-            if (in_array($f, ['wa_send_instant', 'web_appointments'], true)) setting_set($f, '0');
+            if (in_array($f, ['wa_send_instant', 'web_appointments', 'kopuk_admin', 'kopuk_site'], true)) setting_set($f, '0');
             continue;
         }
         if (in_array($f, $secret, true) && $_POST[$f] === '') continue; // boş bırakılırsa eskisi korunur
@@ -168,14 +168,16 @@ include APP . '/views/admin_header.php'; ?>
       <div class="col-12"><h6 class="fw-bold mt-2"><i class="bi bi-window me-1"></i>Web Sitesi Görünümü</h6></div>
       <div class="col-12"><div class="mb-3"><label class="form-label fw-bold">Klinik Logosu</label>
         <div class="d-flex align-items-center gap-3 flex-wrap">
-          <div class="logo-preview"><?php if ($lg = clinic_logo()): ?><img src="<?= e($lg) ?>" alt="Logo"><?php else: ?><img src="<?= asset('img/favicon.svg') ?>" alt="" style="opacity:.5"><?php endif; ?></div>
+          <div class="logo-preview"><?php if ($lg = clinic_logo()): ?><img src="<?= e($lg) ?>" alt="Logo"><?php else: ?><img src="<?= asset('img/patikum-logo-192.png') ?>" alt="Patikum logosu"><?php endif; ?></div>
           <div class="flex-grow-1"><input type="file" name="logo_file" accept="image/png,image/jpeg,image/webp" class="form-control">
-            <div class="form-text">PNG (şeffaf arka planlı önerilir), JPG veya WEBP · en fazla 3 MB. Web sitesinin üst menüsünde, alt bilgisinde, yönetim panelinde, müşteri panelinde ve giriş ekranlarında görünür.</div>
+            <div class="form-text">PNG (şeffaf arka planlı önerilir), JPG veya WEBP · en fazla 3 MB. Boş bırakılırsa Patikum logosu kullanılır. Yüklenen logo web sitesinin üst menüsünde, alt bilgisinde, yönetim panelinde, müşteri panelinde ve giriş ekranlarında görünür.</div>
             <?php if (clinic_logo()): ?><div class="form-check mt-1"><input class="form-check-input" type="checkbox" name="logo_sil" value="1" id="lsil"><label class="form-check-label small text-danger" for="lsil">Logoyu kaldır</label></div><?php endif; ?>
           </div>
         </div></div></div>
       <div class="col-md-6"><?= fld('site_hero_image', 'Ana sayfa fotoğrafı (adres)', 'url', 'Kliniğinizin veya bir hastanızın fotoğrafının bağlantısı (https://…jpg). Boş bırakılırsa çizim gösterilir.') ?></div>
       <div class="col-md-6"><?= fld('site_about', 'Hakkımızda yazısı', 'textarea', 'Ana sayfadaki "Hakkımızda" bölümünde görünür.') ?></div>
+      <div class="col-md-6"><?= fld('kopuk_admin', '🐱 Köpük yönetim panelinde gezinsin', 'switch') ?></div>
+      <div class="col-md-6"><?= fld('kopuk_site', '🐱 Köpük web sitesinde ve müşteri panelinde gezinsin', 'switch') ?></div>
       <div class="col-md-6"><?= fld('site_url', 'Site Adresi', 'url', 'WhatsApp mesajlarındaki panel linki için. Örn: https://patikum.com') ?></div><div class="col-md-6"><?= fld('service_vat', 'Muayene/hizmet KDV oranı (%)', 'number') ?></div>
       <div class="col-12"><?= fld('web_appointments', 'Web sitesinden online randevu talebi alınsın', 'switch') ?></div>
       <div class="col-12"><?= fld('appointment_types', 'Randevu Türleri', 'text', 'Virgülle ayırın') ?></div>

@@ -17,13 +17,15 @@ if (is_post()) {
 <title>Yönetim Girişi · <?= e(setting('clinic_name', 'Patikum')) ?></title>
 <link rel="icon" href="<?= e(favicon_url()) ?>">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="<?= asset('vendor/bootstrap.min.css') ?>" rel="stylesheet">
+<link href="<?= asset('vendor/bootstrap-icons.min.css') ?>" rel="stylesheet">
 <link href="<?= asset('css/admin.css') ?>" rel="stylesheet">
 <style>
 body{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr;background:#fff}
-.side{background:linear-gradient(140deg,#10302a,#1d7a64 60%,#2b9a7d);color:#fff;padding:3rem;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
-.side .paws{position:absolute;right:-40px;bottom:-40px;font-size:16rem;opacity:.08;transform:rotate(-20deg)}
+.side{background:linear-gradient(140deg,#0f3336,#1f6a70 60%,#2a8088);color:#fff;padding:3rem;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.side .login-logo{position:absolute;right:40px;top:40px;width:min(16vw,170px);border-radius:50%;box-shadow:0 24px 50px rgba(0,0,0,.35)}
+.side .pt-logo .brand-badge{width:46px;height:46px;border-radius:50%}
+@media(max-width:1200px){.side .login-logo{display:none}}
 .side h2{font-weight:900;font-size:2.3rem;line-height:1.15}
 .side li{margin:.45rem 0;font-weight:600}
 .form-side{display:grid;place-items:center;padding:2rem}
@@ -33,7 +35,7 @@ body{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr;background:#f
 </head>
 <body>
 <div class="side">
-  <div class="pt-logo"><?php if ($lg = clinic_logo()): ?><span class="logo-box"><img src="<?= e($lg) ?>" alt=""></span><?php else: ?><span class="paw"><img src="<?= asset('img/favicon.svg') ?>" width="26" alt=""></span> patikum<?php endif; ?></div>
+  <div class="pt-logo"><?php if ($lg = clinic_logo()): ?><span class="logo-box"><img src="<?= e($lg) ?>" alt=""></span><?php else: ?><img class="brand-badge" src="<?= asset('img/patikum-logo-192.png') ?>" width="46" height="46" alt=""> patikum<?php endif; ?></div>
   <div>
     <h2>Kliniğiniz tek ekranda,<br>dostlarınız güvende.</h2>
     <ul class="list-unstyled mt-4">
@@ -44,7 +46,7 @@ body{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr;background:#f
     </ul>
   </div>
   <small class="opacity-75">© <?= date('Y') ?> <?= e(setting('clinic_name', 'Patikum')) ?></small>
-  <div class="paws">🐾</div>
+  <img class="login-logo" src="<?= e(brand_logo(true)) ?>" alt="">
 </div>
 <div class="form-side">
   <div class="box">

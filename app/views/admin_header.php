@@ -1,5 +1,5 @@
 <?php
-$u = current_user();
+$hdrUser = current_user();
 $active = $active ?? '';
 $notif = [
     'talep' => (int)val("SELECT COUNT(*) FROM appointments WHERE status = 'talep'"),
@@ -7,8 +7,8 @@ $notif = [
     'wa' => (int)val("SELECT COUNT(*) FROM wa_messages WHERE status IN ('kuyruk','hata')"),
     'gecikenAsi' => (int)val("SELECT COUNT(*) FROM vaccinations v JOIN patients p ON p.id = v.patient_id WHERE v.status = 'planlandi' AND v.due_date < ? AND p.status = 'aktif'", [today()]),
 ];
-$notifTotal = $notif['talep'] + $notif['stok'] + $notif['gecikenAsi'];
-$menu = [
+$hdrNotifTotal = $notif['talep'] + $notif['stok'] + $notif['gecikenAsi'];
+$hdrMenu = [
     'genel' => ['Genel Bakış', 'grid-1x2', url('admin/'), []],
     'randevu' => ['Randevular', 'calendar-heart', null, [
         ['Randevu Listesi', 'list-ul', url('admin/randevular.php')],
@@ -65,16 +65,16 @@ $menu = [
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <meta name="csrf-token" content="<?= csrf_token() ?>">
-<meta name="theme-color" content="#123d34">
+<meta name="theme-color" content="#0f3336">
 <title><?= e(($pageTitle ?? 'Yönetim') . ' · ' . setting('clinic_name', 'Patikum')) ?></title>
 <script>try{if(localStorage.getItem('pt_money_hidden')==='1')document.documentElement.classList.add('money-hidden');if(localStorage.getItem('pt_side_mini')==='1')document.documentElement.classList.add('side-mini');}catch(e){}</script>
 <link rel="icon" href="<?= e(favicon_url()) ?>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+<link href="<?= asset('vendor/bootstrap.min.css') ?>" rel="stylesheet">
+<link href="<?= asset('vendor/bootstrap-icons.min.css') ?>" rel="stylesheet">
+<link href="<?= asset('vendor/tom-select.bootstrap5.min.css') ?>" rel="stylesheet">
 <link href="<?= asset('css/admin.css') ?>" rel="stylesheet">
 </head>
 <body data-base="<?= e(base_url()) ?>">
@@ -82,28 +82,28 @@ $menu = [
 <aside class="pt-side" id="ptSide">
   <div class="pt-side-head">
     <a class="pt-logo" href="<?= url('admin/') ?>">
-      <?php if ($clogo = clinic_logo()): ?><span class="logo-box"><img src="<?= e($clogo) ?>" alt="<?= e(setting('clinic_name', 'Patikum')) ?>"></span>
-      <?php else: ?><span class="paw"><img src="<?= asset('img/favicon.svg') ?>" width="24" height="24" alt=""></span>
+      <?php if ($hdrLogo = clinic_logo()): ?><span class="logo-box"><img src="<?= e($hdrLogo) ?>" alt="<?= e(setting('clinic_name', 'Patikum')) ?>"></span>
+      <?php else: ?><img class="brand-badge" src="<?= asset('img/patikum-logo-192.png') ?>" width="44" height="44" alt="Patikum">
       <span class="txt">patikum<small>klinik</small></span><?php endif; ?>
     </a>
     <button class="pt-side-close d-lg-none" type="button" data-pt-side="close" aria-label="Menüyü kapat"><i class="bi bi-x-lg"></i></button>
   </div>
   <nav class="pt-side-nav">
-    <?php foreach ($menu as $key => [$label, $icon, $href, $children]): $isA = $active === $key; ?>
-      <?php if (!$children): ?>
-        <a class="pt-side-link<?= $isA ? ' active' : '' ?>" href="<?= $href ?>" title="<?= e($label) ?>"><i class="bi bi-<?= $icon ?>"></i><span><?= $label ?></span></a>
+    <?php foreach ($hdrMenu as $hdrKey => [$hdrLabel, $hdrIcon, $hdrHref, $hdrChildren]): $hdrIsA = $active === $hdrKey; ?>
+      <?php if (!$hdrChildren): ?>
+        <a class="pt-side-link<?= $hdrIsA ? ' active' : '' ?>" href="<?= $hdrHref ?>" title="<?= e($hdrLabel) ?>"><i class="bi bi-<?= $hdrIcon ?>"></i><span><?= $hdrLabel ?></span></a>
       <?php else: ?>
-        <div class="pt-side-group<?= $isA ? ' open' : '' ?>">
-          <button class="pt-side-link<?= $isA ? ' active' : '' ?>" type="button" data-pt-group title="<?= e($label) ?>"><i class="bi bi-<?= $icon ?>"></i><span><?= $label ?></span><i class="bi bi-chevron-down caret"></i>
-            <?php if ($key === 'asi' && $notif['gecikenAsi']): ?><em class="dot-count"><?= $notif['gecikenAsi'] ?></em><?php endif; ?>
-            <?php if ($key === 'randevu' && $notif['talep']): ?><em class="dot-count warn"><?= $notif['talep'] ?></em><?php endif; ?>
-          </button>
+        <details class="pt-side-group"<?= $hdrIsA ? ' open' : '' ?>>
+          <summary class="pt-side-link<?= $hdrIsA ? ' active' : '' ?>" data-pt-group title="<?= e($hdrLabel) ?>"><i class="bi bi-<?= $hdrIcon ?>"></i><span><?= $hdrLabel ?></span><i class="bi bi-chevron-down caret"></i>
+            <?php if ($hdrKey === 'asi' && $notif['gecikenAsi']): ?><em class="dot-count"><?= $notif['gecikenAsi'] ?></em><?php endif; ?>
+            <?php if ($hdrKey === 'randevu' && $notif['talep']): ?><em class="dot-count warn"><?= $notif['talep'] ?></em><?php endif; ?>
+          </summary>
           <div class="pt-side-sub">
-            <?php foreach ($children as [$cl, $ci, $ch]): ?>
-              <a href="<?= $ch ?>"><i class="bi bi-<?= $ci ?>"></i><?= $cl ?></a>
+            <?php foreach ($hdrChildren as [$hdrCl, $hdrCi, $hdrCh]): ?>
+              <a href="<?= $hdrCh ?>"><i class="bi bi-<?= $hdrCi ?>"></i><?= $hdrCl ?></a>
             <?php endforeach; ?>
           </div>
-        </div>
+        </details>
       <?php endif; ?>
     <?php endforeach; ?>
   </nav>
@@ -128,7 +128,7 @@ $menu = [
       <button class="pt-icon-btn js-money-toggle" type="button" title="Bakiyeleri gizle / göster"><i class="bi bi-eye on"></i><i class="bi bi-eye-slash off"></i></button>
       <a class="pt-icon-btn" href="<?= url('admin/whatsapp.php') ?>" title="WhatsApp kuyruğu"><i class="bi bi-whatsapp"></i><?php if ($notif['wa']): ?><span class="count"><?= $notif['wa'] ?></span><?php endif; ?></a>
       <div class="dropdown">
-        <a class="pt-icon-btn" href="#" data-bs-toggle="dropdown" title="Bildirimler"><i class="bi bi-bell"></i><?php if ($notifTotal): ?><span class="count"><?= $notifTotal ?></span><?php endif; ?></a>
+        <a class="pt-icon-btn" href="#" data-bs-toggle="dropdown" title="Bildirimler"><i class="bi bi-bell"></i><?php if ($hdrNotifTotal): ?><span class="count"><?= $hdrNotifTotal ?></span><?php endif; ?></a>
         <div class="dropdown-menu dropdown-menu-end pt-notif">
           <h6 class="dropdown-header">Bildirimler</h6>
           <a class="dropdown-item" href="<?= url('admin/randevular.php?durum=talep') ?>"><span class="ic bg-warning-subtle text-warning-emphasis"><i class="bi bi-globe2"></i></span><span class="flex-grow-1">Web randevu talebi</span><b><?= $notif['talep'] ?></b></a>
@@ -139,13 +139,14 @@ $menu = [
       </div>
       <div class="dropdown">
         <a href="#" class="pt-user" data-bs-toggle="dropdown">
-          <span class="avatar"><?= e(initials($u['name'])) ?></span>
-          <span class="d-none d-md-block lh-sm"><b><?= e($u['name']) ?></b><small><?= e(['admin' => 'Yönetici', 'veteriner' => 'Veteriner Hekim', 'personel' => 'Personel'][$u['role']] ?? ucfirst((string)$u['role'])) ?></small></span>
+          <span class="avatar"><?= e(initials($hdrUser['name'])) ?></span>
+          <span class="d-none d-md-block lh-sm"><b><?= e($hdrUser['name']) ?></b><small><?= e(['admin' => 'Yönetici', 'veteriner' => 'Veteriner Hekim', 'personel' => 'Personel'][$hdrUser['role']] ?? ucfirst((string)$hdrUser['role'])) ?></small></span>
           <i class="bi bi-chevron-down small d-none d-md-inline"></i>
         </a>
         <ul class="dropdown-menu dropdown-menu-end">
           <li><a class="dropdown-item" href="<?= url('admin/kullanicilar.php?islem=profil') ?>"><i class="bi bi-person me-2"></i>Profilim</a></li>
           <li><a class="dropdown-item" href="<?= url('admin/ayarlar.php') ?>"><i class="bi bi-gear me-2"></i>Ayarlar</a></li>
+          <li><a class="dropdown-item d-none" href="#" data-kopuk-show>🐱 Köpük'ü geri getir</a></li>
           <li><hr class="dropdown-divider"></li>
           <li><a class="dropdown-item text-danger" href="<?= url('admin/logout.php') ?>"><i class="bi bi-box-arrow-right me-2"></i>Çıkış Yap</a></li>
         </ul>

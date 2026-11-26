@@ -69,7 +69,7 @@ $faqs = [
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($name) ?> · <?= e(setting('clinic_slogan', 'Veteriner Kliniği')) ?></title>
 <meta name="description" content="<?= e($name) ?> — muayene, aşılama, cerrahi, laboratuvar, bakım ve online randevu. Patili dostlarınız için sevgiyle, bilimle.">
-<meta name="theme-color" content="#10302a">
+<meta name="theme-color" content="#0f3336">
 <meta property="og:title" content="<?= e($name) ?>">
 <meta property="og:description" content="<?= e(setting('clinic_slogan', 'Patili dostlarınız için sevgiyle, bilimle.')) ?>">
 <meta property="og:type" content="website">
@@ -78,8 +78,8 @@ $faqs = [
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="<?= asset('vendor/bootstrap.min.css') ?>" rel="stylesheet">
+<link href="<?= asset('vendor/bootstrap-icons.min.css') ?>" rel="stylesheet">
 <link href="<?= asset('css/site.css') ?>" rel="stylesheet">
 <script type="application/ld+json"><?= json_encode(['@context' => 'https://schema.org', '@type' => 'VeterinaryCare', 'name' => $name, 'telephone' => $phone, 'address' => setting('clinic_address'), 'url' => site_url()], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
 </head>
@@ -95,7 +95,7 @@ $faqs = [
 </div>
 <nav class="site-nav navbar navbar-expand-lg" id="top">
   <div class="container">
-    <a class="brand" href="#top"><?php if ($logo = clinic_logo()): ?><img class="brand-logo" src="<?= e($logo) ?>" alt="<?= e($name) ?>"><?php else: ?><span class="brand-mark"><img src="<?= asset('img/favicon.svg') ?>" alt=""></span><span>patikum<small>veteriner kliniği</small></span><?php endif; ?></a>
+    <a class="brand" href="#top"><?php if ($logo = clinic_logo()): ?><img class="brand-logo" src="<?= e($logo) ?>" alt="<?= e($name) ?>"><?php else: ?><img class="brand-badge" src="<?= asset('img/patikum-logo-192.png') ?>" alt="Patikum Veteriner Kliniği"><span>patikum<small>veteriner kliniği</small></span><?php endif; ?></a>
     <button class="navbar-toggler border-0 shadow-none" data-bs-toggle="collapse" data-bs-target="#nv" aria-label="Menü"><i class="bi bi-list fs-2"></i></button>
     <div class="collapse navbar-collapse" id="nv">
       <ul class="navbar-nav mx-auto gap-lg-1">
@@ -138,7 +138,7 @@ $faqs = [
             <?php else: ?>
               <div class="hv-art" aria-hidden="true">
                 <span class="ring r1"></span><span class="ring r2"></span><span class="ring r3"></span>
-                <img class="paw-big" src="<?= asset('img/favicon.svg') ?>" alt="">
+                <img class="logo-big" src="<?= e(brand_logo(true)) ?>" alt="<?= e($name) ?>">
                 <span class="pet pet-a">🐶</span><span class="pet pet-b">🐱</span>
               </div>
             <?php endif; ?>
@@ -178,7 +178,7 @@ $faqs = [
   <div class="container"><div class="row g-4 g-lg-5 align-items-center">
     <div class="col-lg-5">
       <div class="about-visual">
-        <div class="av-main"><img src="<?= asset('img/favicon.svg') ?>" alt=""><?php if ($logo): ?><span class="av-logo"><img src="<?= e($logo) ?>" alt=""></span><?php endif; ?><b>Her pati<br>bizim için özel.</b></div>
+        <div class="av-main"><img src="<?= asset('img/favicon.svg') ?>" alt=""><span class="av-logo"><img src="<?= e(brand_logo()) ?>" alt=""></span><b>Her pati<br>bizim için özel.</b></div>
         <div class="av-badge"><i class="bi bi-heart-pulse"></i><span>Koruyucu<br>hekimlik</span></div>
       </div>
     </div>
@@ -353,7 +353,7 @@ $faqs = [
       <div class="d-flex gap-2 flex-wrap"><?php if ($webAppt): ?><a href="#randevu" class="btn btn-brand btn-lg">Randevu Al</a><?php endif; ?><?php if ($wa): ?><a href="<?= e(wa_link($wa)) ?>" class="btn btn-outline-light btn-lg" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> WhatsApp</a><?php endif; ?></div>
     </div>
     <div class="row g-4">
-      <div class="col-md-5"><a class="brand light mb-3" href="#top"><?php if ($logo): ?><span class="logo-pill"><img class="brand-logo" src="<?= e($logo) ?>" alt="<?= e($name) ?>"></span><?php else: ?><span class="brand-mark"><img src="<?= asset('img/favicon.svg') ?>" alt=""></span><span>patikum<small>veteriner kliniği</small></span><?php endif; ?></a><p class="small"><?= e(setting('clinic_slogan')) ?></p></div>
+      <div class="col-md-5"><a class="brand light mb-3" href="#top"><?php if ($logo): ?><span class="logo-pill"><img class="brand-logo" src="<?= e($logo) ?>" alt="<?= e($name) ?>"></span><?php else: ?><img class="brand-badge" src="<?= asset('img/patikum-logo-192.png') ?>" alt="Patikum Veteriner Kliniği"><span>patikum<small>veteriner kliniği</small></span><?php endif; ?></a><p class="small"><?= e(setting('clinic_slogan')) ?></p></div>
       <div class="col-6 col-md-3"><b>Hızlı Erişim</b><ul class="list-unstyled small mt-2 d-grid gap-1"><li><a href="#hizmetler">Hizmetler</a></li><li><a href="#asi">Aşı Programı</a></li><li><a href="#randevu">Randevu</a></li><li><a href="<?= url('panel/') ?>">Müşteri Paneli</a></li></ul></div>
       <div class="col-6 col-md-4"><b>Çalışma Saatleri</b><p class="small mt-2"><?= nl2br(e(setting('clinic_hours'))) ?></p></div>
     </div>
@@ -361,7 +361,8 @@ $faqs = [
   </div>
 </footer>
 <?php if ($wa): ?><a class="wa-float" href="<?= e(wa_link($wa, 'Merhaba, bilgi almak istiyorum.')) ?>" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a><?php endif; ?>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="<?= asset('vendor/bootstrap.bundle.min.js') ?>"></script>
+<?= kopuk_html('site', ['Merhaba! Ben Köpük, ' . $name . '\'nin kedisiyim 🐾', $webAppt ? 'Online randevu almak çok kolay, aşağıdaki formu doldur 📅' : null, 'Aşı zamanlarını biz hatırlatıyoruz 💉', $wa ? 'WhatsApp\'tan bize yazabilirsin 💬' : null, 'Dostuna benden selam söyle 🐶🐱', 'Mrrr… burası çok güzel 😺']) ?>
 <script>
 document.querySelectorAll('.site-nav .nav-link, .site-nav .btn').forEach(a => a.addEventListener('click', () => { const c = document.getElementById('nv'); if (c.classList.contains('show')) bootstrap.Collapse.getOrCreateInstance(c).hide(); }));
 const nav = document.querySelector('.site-nav'); const onS = () => nav.classList.toggle('scrolled', window.scrollY > 30); onS(); window.addEventListener('scroll', onS, { passive: true });

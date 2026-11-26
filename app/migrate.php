@@ -4,7 +4,7 @@
  * Mevcut verilere dokunmaz; yalnızca yeni tablo/sütun ekler ve varsayılan aşı akışını kurar.
  */
 
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 function db_migrate(): void
 {
@@ -28,6 +28,10 @@ function db_migrate(): void
             ? 'CREATE TABLE IF NOT EXISTS vaccine_flow (id INTEGER PRIMARY KEY AUTOINCREMENT, species_id INTEGER NULL, from_type_id INTEGER NOT NULL, from_dose VARCHAR(5) NOT NULL DEFAULT \'*\', to_type_id INTEGER NOT NULL, to_dose VARCHAR(5) NULL, days INT NOT NULL DEFAULT 15, sort INT NOT NULL DEFAULT 0, active TINYINT NOT NULL DEFAULT 1, created_at DATETIME NULL)'
             : 'CREATE TABLE IF NOT EXISTS vaccine_flow (id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, species_id INT UNSIGNED NULL, from_type_id INT UNSIGNED NOT NULL, from_dose VARCHAR(5) NOT NULL DEFAULT \'*\', to_type_id INT UNSIGNED NOT NULL, to_dose VARCHAR(5) NULL, days INT NOT NULL DEFAULT 15, sort INT NOT NULL DEFAULT 0, active TINYINT(1) NOT NULL DEFAULT 1, created_at DATETIME NULL, KEY idx_vf_from (from_type_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
         if (!(int)val('SELECT COUNT(*) FROM vaccine_flow')) vaccine_flow_seed();
+    }
+    if ($cur < 3) {
+        // Köpük (gezinen kedi) varsayılan olarak açık
+        foreach (['kopuk_admin', 'kopuk_site'] as $k) if (setting($k, '') === '') setting_set($k, '1');
     }
     setting_set('db_version', (string)DB_VERSION);
 }

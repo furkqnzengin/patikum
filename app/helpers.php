@@ -33,7 +33,19 @@ function clinic_logo(): ?string
     $l = (string)setting('clinic_logo');
     return ($l !== '' && preg_match('#^img/uploads/[A-Za-z0-9._-]+$#', $l) && is_file(ROOT . '/assets/' . $l)) ? asset($l) : null;
 }
-function favicon_url(): string { return clinic_logo() ?? asset('img/favicon.svg'); }
+function favicon_url(): string { return clinic_logo() ?? asset('img/patikum-logo-64.png'); }
+/** Logo (yüklenen varsa o, yoksa Patikum logosu) */
+function brand_logo(bool $large = false): string { return clinic_logo() ?? asset($large ? 'img/patikum-logo.png' : 'img/patikum-logo-192.png'); }
+
+/** Köpük (ekranda gezinen kedi) etiketleri; $ctx: admin | site */
+function kopuk_html(string $ctx, array $messages, ?string $greet = null): string
+{
+    if (setting($ctx === 'admin' ? 'kopuk_admin' : 'kopuk_site', '1') !== '1') return '';
+    $cfg = ['messages' => array_values(array_filter($messages)), 'greet' => $greet];
+    return '<link rel="stylesheet" href="' . asset('css/kopuk.css') . '">'
+        . '<script>window.PT_KOPUK=' . json_encode($cfg, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) . ';</script>'
+        . '<script src="' . asset('js/kopuk.js') . '" defer></script>';
+}
 
 function site_url(): string
 {

@@ -115,7 +115,7 @@ $greet = $hour < 6 ? 'İyi geceler' : ($hour < 12 ? 'Günaydın' : ($hour < 18 ?
 include APP . '/views/admin_header.php';
 ?>
 <section class="dash-hero">
-  <img class="paw-deco" src="<?= asset('img/favicon.svg') ?>" alt="">
+  <img class="paw-deco" src="<?= asset('img/favicon.svg') ?>" alt=""><img class="hero-logo d-none d-md-block" src="<?= e(brand_logo(true)) ?>" alt="">
   <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 position-relative" style="z-index:1">
     <div>
       <p class="hello"><?= $greet ?>, <?= e(explode(' ', $u['name'])[0]) ?> 👋</p>
@@ -253,5 +253,5 @@ include APP . '/views/admin_header.php';
   </div>
 </div>
 <?php
-$pageScripts = '<script>ptSpark("spCust",' . json_encode($custSeries) . ',"#1d7a64");ptSpark("spPat",' . json_encode($patSeries) . ',"#6b55d6");ptSpark("spSale",' . json_encode($saleSeries) . ',"#e0712f");</script>';
+$pageScripts = '<script>ptSpark("spCust",' . json_encode($custSeries) . ',"#1f6a70");ptSpark("spPat",' . json_encode($patSeries) . ',"#6b55d6");ptSpark("spSale",' . json_encode($saleSeries) . ',"#a8692f");</script>';
 include APP . '/views/admin_footer.php';
