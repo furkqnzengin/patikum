@@ -362,7 +362,7 @@ $faqs = [
 </footer>
 <?php if ($wa): ?><a class="wa-float" href="<?= e(wa_link($wa, 'Merhaba, bilgi almak istiyorum.')) ?>" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a><?php endif; ?>
 <script src="<?= asset('vendor/bootstrap.bundle.min.js') ?>"></script>
-<?= kopuk_html('site', ['Merhaba! Ben Köpük, ' . $name . '\'nin kedisiyim 🐾', $webAppt ? 'Online randevu almak çok kolay, aşağıdaki formu doldur 📅' : null, 'Aşı zamanlarını biz hatırlatıyoruz 💉', $wa ? 'WhatsApp\'tan bize yazabilirsin 💬' : null, 'Dostuna benden selam söyle 🐶🐱', 'Mrrr… burası çok güzel 😺']) ?>
+<?= kopuk_html('site', ['Merhaba! Ben Köpük 🐾', 'Ben ' . $name . '\'nin kedisiyim 😺', $webAppt ? 'Online randevu almak çok kolay, aşağıdaki formu doldur 📅' : null, 'Aşı zamanlarını biz hatırlatıyoruz 💉', $wa ? 'WhatsApp\'tan bize yazabilirsin 💬' : null, 'Dostuna benden selam söyle 🐶🐱', 'Mrrr… burası çok güzel 😺']) ?>
 <script>
 document.querySelectorAll('.site-nav .nav-link, .site-nav .btn').forEach(a => a.addEventListener('click', () => { const c = document.getElementById('nv'); if (c.classList.contains('show')) bootstrap.Collapse.getOrCreateInstance(c).hide(); }));
 const nav = document.querySelector('.site-nav'); const onS = () => nav.classList.toggle('scrolled', window.scrollY > 30); onS(); window.addEventListener('scroll', onS, { passive: true });

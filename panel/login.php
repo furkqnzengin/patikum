@@ -36,5 +36,6 @@ $wa = setting('clinic_whatsapp');
     <div class="text-center mt-3"><a href="<?= url('') ?>" class="small text-muted"><i class="bi bi-arrow-left"></i> Ana sayfa</a></div>
   </div>
 </div>
+<?= kopuk_html('site', ['Merhaba! Ben Köpük 🐾', 'Telefon numaranla giriş yapabilirsin 📱', 'Şifren yoksa kliniğe WhatsApp\'tan yaz 💬']) ?>
 </body>
 </html>

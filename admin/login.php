@@ -62,5 +62,6 @@ body{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr;background:#f
     <div class="text-center mt-4"><a href="<?= url('') ?>" class="text-muted small"><i class="bi bi-arrow-left"></i> Siteye dön</a></div>
   </div>
 </div>
+<?= kopuk_html('admin', ['Merhaba! Ben Köpük 🐾', 'Şifreni unutma, ben de unuturum 😹', 'İyi çalışmalar! 🐾']) ?>
 </body>
 </html>

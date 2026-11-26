@@ -10,6 +10,6 @@
 </form></div></div>
 <footer class="text-center small text-muted pb-4">🐾 <?= e(setting('clinic_name')) ?> · <?= e(setting('clinic_phone')) ?></footer>
 <script src="<?= asset('vendor/bootstrap.bundle.min.js') ?>"></script>
-<?= kopuk_html('site', ['Hoş geldin! Ben Köpük 😺', 'Dostunun aşı karnesi burada 💉', 'Yaklaşan aşıları sana WhatsApp\'tan hatırlatırız 💬', 'Randevu talebi oluşturmak için sağ üstteki düğmeyi kullanabilirsin 📅', 'Mrrr… 🐾']) ?>
+<?= kopuk_html('site', ['Merhaba! Ben Köpük 🐾', 'Hoş geldin! 😺', 'Dostunun aşı karnesi burada 💉', 'Yaklaşan aşıları sana WhatsApp\'tan hatırlatırız 💬', 'Randevu talebi oluşturmak için sağ üstteki düğmeyi kullanabilirsin 📅', 'Mrrr… 🐾']) ?>
 </body>
 </html>
