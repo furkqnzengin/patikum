@@ -13,6 +13,31 @@ $fields = [
 $secret = ['wa_cloud_token', 'wa_api_token', 'einv_api_pass'];
 
 if (is_post()) {
+    if (post('islem') === 'temizle') {
+        require_once APP . '/purge.php';
+        $sel = array_values(array_filter((array)($_POST['grup'] ?? []), 'is_string'));
+        if (post('hepsi')) $sel = array_keys(purge_groups());
+        $me = current_user();
+        $hash = (string)val('SELECT password FROM users WHERE id = ?', [$me['id']]);
+        if (!$sel) {
+            flash('warning', 'Silinecek en az bir veri türü seçin.');
+        } elseif (mb_strtoupper(trim((string)post('onay')), 'UTF-8') !== 'SİL' && strtoupper(trim((string)post('onay'))) !== 'SIL') {
+            flash('danger', 'Onay kutusuna büyük harflerle <b>SİL</b> yazmalısınız. Hiçbir şey silinmedi.');
+        } elseif (!password_verify((string)post('sifre'), $hash)) {
+            flash('danger', 'Şifreniz hatalı. Hiçbir şey silinmedi.');
+        } else {
+            try {
+                $done = purge_run($sel);
+                $labels = purge_groups();
+                $parts = [];
+                foreach ($done as $k => $n) $parts[] = e($labels[$k][0]) . ': <b>' . (int)$n . '</b>';
+                flash('success', 'Veriler silindi. ' . implode(' · ', $parts));
+            } catch (Throwable $e) {
+                flash('danger', 'Silme tamamlanamadı, hiçbir şey değişmedi: ' . e($e->getMessage()));
+            }
+        }
+        redirect(url('admin/ayarlar.php?sekme=temizle'));
+    }
     if (post('islem') === 'test_wa') {
         $id = wa_queue(null, post('test_phone'), "Patikum test mesajı ✅ " . dtt(now()), [], null, true);
         $m = $id ? row('SELECT * FROM wa_messages WHERE id = ?', [$id]) : null;
@@ -81,11 +106,45 @@ function fld(string $k, string $label, string $type = 'text', string $help = '',
 include APP . '/views/admin_header.php'; ?>
 <div class="page-head"><div><h1>Ayarlar</h1><div class="sub">Klinik bilgileri, WhatsApp entegrasyonu ve e-Dönüşüm</div></div></div>
 <ul class="nav nav-pills mb-3">
-  <?php foreach (['genel' => ['Klinik & Site', 'building'], 'whatsapp' => ['WhatsApp', 'whatsapp'], 'efatura' => ['E-Dönüşüm', 'file-earmark-text'], 'sistem' => ['Sistem', 'cpu']] as $k => [$l, $i]): ?>
+  <?php foreach (['genel' => ['Klinik & Site', 'building'], 'whatsapp' => ['WhatsApp', 'whatsapp'], 'efatura' => ['E-Dönüşüm', 'file-earmark-text'], 'sistem' => ['Sistem', 'cpu'], 'temizle' => ['Verileri Temizle', 'trash3']] as $k => [$l, $i]): ?>
     <li class="nav-item"><a class="nav-link <?= $tab === $k ? 'active' : '' ?>" href="?sekme=<?= $k ?>"><i class="bi bi-<?= $i ?>"></i> <?= $l ?></a></li>
   <?php endforeach; ?>
 </ul>
-<?php if ($tab === 'sistem'): ?>
+<?php if ($tab === 'temizle'): require_once APP . '/purge.php'; ?>
+  <div class="row g-3" style="max-width:1100px">
+    <div class="col-lg-8">
+      <form method="post" class="card border-danger-subtle" id="purgeForm" data-confirm="Seçilen veriler KALICI olarak silinecek. Emin misiniz?">
+        <div class="card-header text-danger"><i class="bi bi-trash3 me-1"></i> Verileri Temizle</div>
+        <div class="card-body">
+          <?= csrf_field() ?><input type="hidden" name="islem" value="temizle">
+          <div class="alert alert-danger small"><i class="bi bi-exclamation-octagon me-1"></i><b>Silinen veri geri getirilemez.</b> Başlamadan önce cPanel → <b>phpMyAdmin</b> → veritabanınız → <b>Dışa Aktar</b> ile yedek alın. Ayarlar, kullanıcılar, hayvan kategorileri, aşı tanımları ve aşı akışı silinmez.</div>
+          <div class="purge-list">
+            <?php foreach (purge_groups() as $k => [$label, $icon, $desc, $cntSql]): $n = purge_count($cntSql); ?>
+              <label class="purge-item">
+                <input type="checkbox" class="form-check-input js-purge" name="grup[]" value="<?= $k ?>">
+                <span class="ic"><i class="bi bi-<?= $icon ?>"></i></span>
+                <span class="flex-grow-1"><b><?= e($label) ?></b><small><?= e($desc) ?></small></span>
+                <span class="badge text-bg-light border"><?= number_format($n, 0, ',', '.') ?> kayıt</span>
+              </label>
+            <?php endforeach; ?>
+          </div>
+          <label class="purge-item all mt-2"><input type="checkbox" class="form-check-input" name="hepsi" value="1" id="purgeAll"><span class="ic"><i class="bi bi-exclamation-triangle"></i></span><span class="flex-grow-1"><b>Hepsini sil (sistemi sıfırla)</b><small>Yukarıdaki tüm veriler silinir; sistem ilk kurulduğu gibi boş kalır.</small></span></label>
+          <div class="row g-2 mt-3">
+            <div class="col-md-6"><label class="form-label">Onaylamak için <b>SİL</b> yazın</label><input name="onay" class="form-control" autocomplete="off" placeholder="SİL" required></div>
+            <div class="col-md-6"><label class="form-label">Şifreniz</label><input type="password" name="sifre" class="form-control" autocomplete="current-password" required></div>
+          </div>
+        </div>
+        <div class="card-footer bg-white text-end"><button class="btn btn-danger px-4"><i class="bi bi-trash3"></i> Seçilenleri Kalıcı Olarak Sil</button></div>
+      </form>
+    </div>
+    <div class="col-lg-4">
+      <div class="card"><div class="card-header"><i class="bi bi-lightbulb me-1"></i> İpucu</div><div class="card-body small">
+        <p>Yalnızca Excel'den aktardığınız kayıtları silmek istiyorsanız <a href="<?= url('admin/aktar.php') ?>">Excel'den Veri Aktarımı</a> sayfasındaki <b>Geri al</b> düğmelerini kullanın. O düğmeler elle girdiğiniz kayıtlara dokunmaz.</p>
+        <p class="mb-0">Silme sırasında bir hata olursa işlem tamamen geri alınır; yarım silme olmaz.</p>
+      </div></div>
+    </div>
+  </div>
+<?php elseif ($tab === 'sistem'): ?>
   <div class="card" style="max-width:760px"><div class="card-body small">
     <dl class="row mb-0">
       <dt class="col-4">Sürüm</dt><dd class="col-8">Patikum v<?= PATIKUM_VERSION ?></dd>
@@ -146,4 +205,5 @@ include APP . '/views/admin_header.php'; ?>
     <div class="flex-grow-1"><label class="form-label fw-bold">Test mesajı gönder</label><input name="test_phone" class="form-control" placeholder="05xx xxx xx xx"></div><button class="btn btn-success"><i class="bi bi-send"></i> Test Et</button></div></form>
 <?php endif; ?>
 <?php endif; ?>
+<?php if ($tab === 'temizle') $pageScripts = '<script>(function(){const a=document.getElementById("purgeAll");if(!a)return;a.addEventListener("change",()=>document.querySelectorAll(".js-purge").forEach(c=>{c.checked=a.checked;c.disabled=a.checked;}));})();</script>'; ?>
 <?php include APP . '/views/admin_footer.php';

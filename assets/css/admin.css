@@ -301,3 +301,16 @@ html.side-mini .pt-logo .logo-box { max-width: 52px; padding: .25rem; }
 html.side-mini .pt-logo .logo-box img { max-width: 44px; max-height: 36px; }
 .logo-preview { width: 150px; height: 80px; border: 1px dashed var(--pt-border); border-radius: 14px; display: grid; place-items: center; background: #fafbfb; padding: .5rem; }
 .logo-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+/* Verileri temizle */
+.purge-list { display: grid; gap: .5rem; }
+.purge-item { display: flex; align-items: center; gap: .8rem; padding: .7rem .9rem; border: 1px solid var(--pt-border); border-radius: 14px; cursor: pointer; margin: 0; background: #fff; }
+.purge-item:hover { border-color: #f1b5b5; }
+.purge-item:has(input:checked) { border-color: #e5484d; background: #fff5f5; }
+.purge-item .form-check-input { margin: 0; flex-shrink: 0; }
+.purge-item .form-check-input:checked { background-color: #e5484d; border-color: #e5484d; }
+.purge-item .ic { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: #f2f5f4; color: #4a5b56; flex-shrink: 0; }
+.purge-item b { display: block; font-size: .88rem; }
+.purge-item small { color: var(--pt-muted); font-size: .78rem; }
+.purge-item.all { border-style: dashed; border-color: #f1b5b5; }
+.purge-item.all .ic { background: #fde4e4; color: #b42318; }
